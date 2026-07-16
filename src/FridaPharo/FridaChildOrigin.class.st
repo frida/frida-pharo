@@ -1,0 +1,26 @@
+"
+GENERATED binding for the Frida FridaChildOrigin enumeration.
+"
+Class {
+	#name : 'FridaChildOrigin',
+	#superclass : 'FFIExternalEnumeration',
+	#classVars : [ 'FridaChildOriginFork', 'FridaChildOriginExec', 'FridaChildOriginSpawn' ],
+	#category : 'FridaPharo',
+	#package : 'FridaPharo'
+}
+
+{ #category : 'generated' }
+FridaChildOrigin class >> enumDecl [
+	^ #(
+			FridaChildOriginFork 0
+			FridaChildOriginExec 1
+			FridaChildOriginSpawn 2
+		)
+]
+
+{ #category : 'generated' }
+FridaChildOrigin class >> initialize [
+	self initializeEnumeration.
+	self rebuildEnumAccessors
+]
+

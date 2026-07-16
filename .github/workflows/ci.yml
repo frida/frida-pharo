@@ -1,0 +1,122 @@
+name: CI
+
+# Builds libfrida-core.so from frida-core's PUBLISHED devkit (a self-contained
+# static lib + header + .pc), builds the glue, loads the vendored Tonel bindings
+# into a pinned Pharo image, and runs the SUnit suite headless.
+#
+# This workflow only actually runs once the repo is pushed to GitHub. It is
+# written correct-by-construction; first-run iteration is expected on the Linux
+# link specifics the macOS dev box cannot validate (see NOTES at the bottom).
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    env:
+      # Pin the frida-core devkit. MUST be an existing published frida release
+      # (https://github.com/frida/frida/releases). 17.16.0 is the first release
+      # carrying the gum module-registry range fix the in-process agent needs on
+      # real x86_64. Keep it close to the version the vendored src/FridaPharo
+      # Tonel was generated from; bump both together. FIRST-RUN TUNING POINT.
+      FRIDA_VERSION: "17.16.0"
+      # Pin the Pharo image (matches the dev box's Pharo 13.x). get.pharo.org
+      # spells Pharo 13 as "130".
+      PHARO_VERSION: "130"
+
+    steps:
+      - name: Checkout (with the frida-bindgen submodule)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential clang python3 pkg-config curl \
+            libglib2.0-dev
+
+      - name: Download and extract the frida-core devkit
+        run: |
+          arch=linux-x86_64
+          asset="frida-core-devkit-${FRIDA_VERSION}-${arch}.tar.xz"
+          url="https://github.com/frida/frida/releases/download/${FRIDA_VERSION}/${asset}"
+          echo "Fetching $url"
+          mkdir -p devkit
+          curl -fL "$url" | tar -xJ -C devkit
+          ls -l devkit
+
+      - name: Link libfrida-core.so from the devkit
+        run: |
+          bash tools/build-dylib.sh --devkit "$PWD/devkit" \
+            "$PWD/build/dylib/libfrida-core.so"
+          ls -l build/dylib
+
+      - name: Probe the glib symbol situation (diagnostics)
+        run: |
+          echo "== the devkit renames bundled glib to _frida_g_* =="
+          nm devkit/libfrida-core.a 2>/dev/null \
+            | grep -E ' T _frida_g_object_unref$' | head \
+            || echo "  -> unexpected: no _frida_g_object_unref in the archive"
+          echo "== build-dylib.sh aliases those back to plain names; check the .so exports them =="
+          nm -D --defined-only build/dylib/libfrida-core.so \
+            | grep -E ' g_(object_unref|object_ref|bytes_new|variant_unref|io_stream_get_input_stream)$' \
+            || echo "  -> ALIASING FAILED: plain g_* not exported"
+          echo "== plain and prefixed names must share one address (same code) =="
+          nm -D build/dylib/libfrida-core.so | grep -wE 'g_object_unref|_frida_g_object_unref' | head
+          echo "== frida_* export (sanity) =="
+          nm -D --defined-only build/dylib/libfrida-core.so | grep -c ' frida_version_string$' || true
+
+      - name: Build the glue shim
+        run: |
+          make glue \
+            GLUE_CFLAGS="$(pkg-config --cflags glib-2.0 gobject-2.0 gio-2.0)"
+
+      - name: Fetch a pinned Pharo image + VM
+        run: |
+          mkdir -p build/pharo
+          cd build/pharo
+          curl -fL "https://get.pharo.org/64/${PHARO_VERSION}+vm" | bash
+
+      # NOTE: the devkit ships no .gir, so CI does not regenerate the bindings;
+      # it loads and tests the vendored src/FridaPharo Tonel (the macOS dev build
+      # keeps that in sync via `make generate`). See NOTES.
+      - name: Load the bindings into a fresh image
+        run: make image
+
+      - name: Run the SUnit suite (fails the job on any failure/error)
+        run: make test
+
+      - name: Upload the JUnit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-report
+          path: FridaPharo-Tests-Test.xml
+
+# NOTES / first-CI-run tuning points:
+#  * FRIDA_VERSION must be a real published release; the vendored bindings were
+#    generated from a dev build, so pin the nearest release and expect at most
+#    minor API drift.
+#  * The devkit's single libfrida-core.a is assumed to bundle gum/gumjs/gio/glib/
+#    openssl (so no separate gioopenssl archive to force_load, unlike source
+#    mode). If the GObject-registration dead-strip bites, the whole-archive of
+#    that single .a should still cover it; revisit build-dylib.sh --devkit if not.
+#  * The exact extra system-lib set comes from the devkit's own .pc when present,
+#    else the Linux baseline (-lpthread -ldl -lm -lrt -lresolv) in build-dylib.sh.
+#  * glib symbol resolution: the devkit renames every bundled glib symbol with a
+#    _frida_ prefix (g_object_unref -> _frida_g_object_unref), so the plain names
+#    are not exported. build-dylib.sh --devkit re-exports an alias from each
+#    prefixed symbol back to its plain name (-Wl,--defsym), so the FFI prims and
+#    the glue bind g_* to frida's OWN bundled glib -- the single GType universe
+#    its GObjects live in. No system glib is used at runtime; libglib2.0-dev is
+#    installed only for the glue's compile-time headers (ABI-stable opaque types).
+#    The probe step verifies the alias took (plain and prefixed names share one
+#    address). If it ever fails, revisit the _frida_ prefix assumption.
+#  * `make test` fails the job if the SUnit runner reports failures/errors.

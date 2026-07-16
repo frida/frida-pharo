@@ -1,0 +1,13 @@
+# Build artefacts and the repo-local Pharo VM/image (fetched via get.pharo.org)
+/build/
+
+# Python
+__pycache__/
+*.pyc
+
+# Pharo / test output
+*.xml
+progress.log
+*.fuel
+PharoDebug.log
+crash.dmp
