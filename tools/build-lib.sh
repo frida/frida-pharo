@@ -6,7 +6,7 @@
 # Two modes:
 #
 #   Source mode (dev builds):
-#     build-dylib.sh <frida-core-repo> <machine> <output-lib>
+#     build-lib.sh <frida-core-repo> <machine> <output-lib>
 #   The authoritative, ordered dependency list comes from frida-core's own
 #   pkg-config metadata (the build tree's private .pc plus the SDK .pc files).
 #   We force_load the handful of frida archives whose GObject type registrations
@@ -16,7 +16,7 @@
 #   from the build tree and SDK rather than pinned to exact meson subpaths.
 #
 #   Devkit mode (CI / reproducible):
-#     build-dylib.sh --devkit <devkit-dir> <output-lib>
+#     build-lib.sh --devkit <devkit-dir> <output-lib>
 #   A published frida-core devkit (frida-core-devkit-<ver>-<os>-<arch>.tar.xz)
 #   is a single self-contained static archive (libfrida-core.a, already bundling
 #   gum/gumjs/gio/glib/openssl) plus its header and pkg-config file. We whole-

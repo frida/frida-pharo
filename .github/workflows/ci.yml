@@ -53,7 +53,7 @@ jobs:
 
       - name: Link libfrida-core.so from the devkit
         run: |
-          bash tools/build-dylib.sh --devkit "$PWD/devkit" \
+          bash tools/build-lib.sh --devkit "$PWD/devkit" \
             "$PWD/build/dylib/libfrida-core.so"
           ls -l build/dylib
 
@@ -63,7 +63,7 @@ jobs:
           nm devkit/libfrida-core.a 2>/dev/null \
             | grep -E ' T _frida_g_object_unref$' | head \
             || echo "  -> unexpected: no _frida_g_object_unref in the archive"
-          echo "== build-dylib.sh aliases those back to plain names; check the .so exports them =="
+          echo "== build-lib.sh aliases those back to plain names; check the .so exports them =="
           nm -D --defined-only build/dylib/libfrida-core.so \
             | grep -E ' g_(object_unref|object_ref|bytes_new|variant_unref|io_stream_get_input_stream)$' \
             || echo "  -> ALIASING FAILED: plain g_* not exported"
@@ -101,12 +101,12 @@ jobs:
 #  * The devkit's single libfrida-core.a is assumed to bundle gum/gumjs/gio/glib/
 #    openssl (so no separate gioopenssl archive to force_load, unlike source
 #    mode). If the GObject-registration dead-strip bites, the whole-archive of
-#    that single .a should still cover it; revisit build-dylib.sh --devkit if not.
+#    that single .a should still cover it; revisit build-lib.sh --devkit if not.
 #  * The exact extra system-lib set comes from the devkit's own .pc when present,
-#    else the Linux baseline (-lpthread -ldl -lm -lrt -lresolv) in build-dylib.sh.
+#    else the Linux baseline (-lpthread -ldl -lm -lrt -lresolv) in build-lib.sh.
 #  * glib symbol resolution: the devkit renames every bundled glib symbol with a
 #    _frida_ prefix (g_object_unref -> _frida_g_object_unref), so the plain names
-#    are not exported. build-dylib.sh --devkit re-exports an alias from each
+#    are not exported. build-lib.sh --devkit re-exports an alias from each
 #    prefixed symbol back to its plain name (-Wl,--defsym), so the FFI prims
 #    bind g_* (g_hash_table_*, g_variant_*, g_object_unref, ...) to frida's OWN
 #    bundled glib -- the single GType universe its GObjects live in. No system

@@ -3,8 +3,8 @@ Hand-written uFFI binding to the frida-core shared library.
 
 frida-core is built as a static archive; we link it (plus its bundled GLib/Gum
 and SDK dependencies) into a single ``libfrida-core.dylib`` that uFFI can
-dlopen. See the repository Makefile target ``dylib`` for exactly how it is
-produced. The absolute path is provided at runtime via the FRIDA_CORE_DYLIB
+dlopen. See the repository Makefile target ``lib`` for exactly how it is
+produced. The absolute path is provided at runtime via the FRIDA_CORE_LIB
 environment variable so the loop stays reproducible across machines.
 "
 Class {
@@ -22,7 +22,7 @@ FridaLibrary >> macLibraryName [
 { #category : 'accessing' }
 FridaLibrary >> resolvedLibraryName [
 	^ OSEnvironment current
-		at: 'FRIDA_CORE_DYLIB'
+		at: 'FRIDA_CORE_LIB'
 		ifAbsent: [ 'libfrida-core.dylib' ]
 ]
 

@@ -23,7 +23,7 @@ Metacello new
 ```
 
 At image start-up (or before the first call) the runtime dynamically loads the
-shared library. Point it at it via the `FRIDA_CORE_DYLIB` environment variable
+shared library. Point it at it via the `FRIDA_CORE_LIB` environment variable
 (as the test harness does), or install it where the OS loader can find it.
 
 ## Usage
@@ -64,7 +64,7 @@ result (or a `FridaError`) comes back.
 
 `make all` performs the full loop end to end:
 
-1. **dylib** — `tools/build-dylib.sh` links frida-core's static archives into one
+1. **lib** — `tools/build-lib.sh` links frida-core's static archives into one
    uFFI-loadable shared library, deriving the ordered dependency list from
    frida-core's own pkg-config metadata. The link vocabulary is OS-conditional
    (`-force_load` + frameworks on macOS, `--whole-archive` + system libs on
@@ -88,4 +88,4 @@ make all FRIDA_CORE=/path/to/frida-core FRIDA_MACHINE=linux-x86_64
 | `frida-bindgen/`         | The shared `frida_bindgen_core` generator (submodule). |
 | `src/FridaPharo/`        | Vendored generated Tonel sources + the hand-written runtime base classes (`FridaObject`, `FridaMainLoop`, `FridaSignalSubscription`, `FridaVariant`, ...). |
 | `src/FridaPharo-Tests/`  | The SUnit suite.                                        |
-| `tools/build-dylib.sh`   | Reproducible frida-core static-to-shared link step.    |
+| `tools/build-lib.sh`   | Reproducible frida-core static-to-shared link step.    |
