@@ -13,18 +13,24 @@ completions and signals dispatch on the Pharo thread.
 
 ## Loading the bindings
 
-The generated Tonel sources load into any Pharo 11+ image via Metacello:
+The generated Tonel sources load into any Pharo 11+ image via Metacello,
+straight from GitHub:
 
 ```smalltalk
 Metacello new
 	baseline: 'FridaPharo';
-	repository: 'tonel:///path/to/frida-pharo/src';
+	repository: 'github://frida/frida-pharo:main/src';
 	load.
 ```
 
-At image start-up (or before the first call) the runtime dynamically loads the
-shared library. Point it at it via the `FRIDA_CORE_LIB` environment variable
-(as the test harness does), or install it where the OS loader can find it.
+Nothing to compile: on first use, `FridaLibrary` downloads the prebuilt
+`libfrida-core` for the current platform and pinned frida version from the
+GitHub release, verifies it against `SHA256SUMS`, and caches it next to the
+image. So `Frida localDevice` just works.
+
+To use a local build instead (contributors, or an unreleased frida version),
+set the `FRIDA_CORE_LIB` environment variable to its path — it takes
+precedence over the download.
 
 ## Usage
 
@@ -61,6 +67,11 @@ Frida's own thread and the calling Pharo process blocks on a semaphore until the
 result (or a `FridaError`) comes back.
 
 ## Building from source
+
+Only needed for development — end users get a prebuilt library automatically
+(see [Loading the bindings](#loading-the-bindings)). The prebuilts themselves are
+produced by the `Release prebuilt libraries` workflow, which links the same
+`tools/build-lib.sh` against frida-core's published devkit for each platform.
 
 `make all` performs the full loop end to end:
 

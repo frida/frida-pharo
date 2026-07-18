@@ -1,0 +1,95 @@
+name: Release prebuilt libraries
+
+# Links a self-contained libfrida-core shared library from frida-core's published
+# devkit for each supported platform and publishes them (plus SHA256SUMS) as a
+# GitHub release tagged core-<version>. FridaLibrary downloads the matching one
+# on first use, so users never compile anything. Run manually after bumping
+# FridaLibrary>>coreVersion to a published frida release.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: frida-core version to build prebuilts for (a published frida release)
+        required: true
+        default: "17.16.1"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-14
+            slug: macos-arm64
+            ext: dylib
+          - runner: macos-13
+            slug: macos-x86_64
+            ext: dylib
+          - runner: ubuntu-latest
+            slug: linux-x86_64
+            ext: so
+          - runner: ubuntu-24.04-arm
+            slug: linux-arm64
+            ext: so
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential clang pkg-config curl xz-utils
+
+      - name: Link libfrida-core from the devkit
+        env:
+          VERSION: ${{ inputs.version }}
+          SLUG: ${{ matrix.slug }}
+          EXT: ${{ matrix.ext }}
+        run: |
+          asset="frida-core-devkit-${VERSION}-${SLUG}.tar.xz"
+          url="https://github.com/frida/frida/releases/download/${VERSION}/${asset}"
+          echo "Fetching $url"
+          mkdir -p devkit out
+          curl -fL "$url" | tar -xJ -C devkit
+          out="out/libfrida-core-${VERSION}-${SLUG}.${EXT}"
+          bash tools/build-lib.sh --devkit "$PWD/devkit" "$PWD/$out"
+          ls -l "$out"
+
+      - name: Upload prebuilt
+        uses: actions/upload-artifact@v4
+        with:
+          name: libfrida-core-${{ matrix.slug }}
+          path: out/libfrida-core-*
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Gather prebuilts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Flatten and checksum
+        run: |
+          mkdir -p out
+          find dist -type f -name 'libfrida-core-*' -exec cp {} out/ \;
+          cd out
+          sha256sum libfrida-core-* > SHA256SUMS
+          cat SHA256SUMS
+
+      - name: Publish the release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: core-${{ inputs.version }}
+          name: frida-core ${{ inputs.version }} prebuilts
+          body: |
+            Prebuilt `libfrida-core` shared libraries for frida-core ${{ inputs.version }},
+            fetched automatically by `FridaLibrary` on first use. Verify against `SHA256SUMS`.
+          files: out/*

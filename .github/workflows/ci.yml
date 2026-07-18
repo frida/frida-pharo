@@ -20,11 +20,11 @@ jobs:
 
     env:
       # Pin the frida-core devkit. MUST be an existing published frida release
-      # (https://github.com/frida/frida/releases). 17.16.0 is the first release
+      # (https://github.com/frida/frida/releases). 17.16.0 was the first release
       # carrying the gum module-registry range fix the in-process agent needs on
       # real x86_64. Keep it close to the version the vendored src/FridaPharo
       # Tonel was generated from; bump both together. FIRST-RUN TUNING POINT.
-      FRIDA_VERSION: "17.16.0"
+      FRIDA_VERSION: "17.16.1"
       # Pin the Pharo image (matches the dev box's Pharo 13.x). get.pharo.org
       # spells Pharo 13 as "130".
       PHARO_VERSION: "130"
