@@ -75,20 +75,23 @@ produced by the `Release prebuilt libraries` workflow, which links the same
 
 `make all` performs the full loop end to end:
 
-1. **lib** — `tools/build-lib.sh` links frida-core's static archives into one
-   uFFI-loadable shared library, deriving the ordered dependency list from
-   frida-core's own pkg-config metadata. The link vocabulary is OS-conditional
-   (`-force_load` + frameworks on macOS, `--whole-archive` + system libs on
-   Linux), so it produces a `.dylib` or `.so` as appropriate.
+1. **lib** — `tools/build-lib.sh` links a frida-core devkit's single
+   self-contained archive into one uFFI-loadable shared library (whole-archive +
+   the glib symbol aliasing, limited to the exports the binding imports, then
+   dead-stripped). Pass `DEVKIT=<extracted devkit dir>` — a published devkit, or
+   one built from a frida-core tree with `--with-devkits=core` when testing
+   unreleased changes.
 2. **generate** — runs the Python generator over the `.gir` files, refreshing the
-   Tonel sources under `src/FridaPharo/`.
+   Tonel sources under `src/FridaPharo/` (needs a frida-core build tree for the
+   GObject `.gir` set; `FRIDA_CORE`/`FRIDA_MACHINE`).
 3. **image** — loads the baseline into a fresh Pharo image.
 4. **test** — runs the SUnit suite headless.
 
 Override the defaults on the command line as needed, e.g.:
 
 ```sh
-make all FRIDA_CORE=/path/to/frida-core FRIDA_MACHINE=linux-x86_64
+make lib DEVKIT=/path/to/frida-core-devkit
+make generate FRIDA_CORE=/path/to/frida-core FRIDA_MACHINE=linux-x86_64
 ```
 
 ## Layout

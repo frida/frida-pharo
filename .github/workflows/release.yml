@@ -23,10 +23,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - runner: macos-14
+          - runner: macos-latest
             slug: macos-arm64
             ext: dylib
-          - runner: macos-13
+          - runner: macos-latest
             slug: macos-x86_64
             ext: dylib
           - runner: ubuntu-latest
@@ -37,7 +37,7 @@ jobs:
             ext: so
     runs-on: ${{ matrix.runner }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install build dependencies (Linux)
         if: runner.os == 'Linux'
@@ -57,21 +57,21 @@ jobs:
           mkdir -p devkit out
           curl -fL "$url" | tar -xJ -C devkit
           out="out/libfrida-core-${VERSION}-${SLUG}.${EXT}"
-          bash tools/build-lib.sh --devkit "$PWD/devkit" "$PWD/$out"
+          bash tools/build-lib.sh "$PWD/devkit" "$PWD/$out"
           ls -l "$out"
 
       - name: Upload prebuilt
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: libfrida-core-${{ matrix.slug }}
-          path: out/libfrida-core-*
+          path: out/libfrida-core-*.${{ matrix.ext }}
 
   release:
     needs: build
     runs-on: ubuntu-latest
     steps:
       - name: Gather prebuilts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: dist
           merge-multiple: true

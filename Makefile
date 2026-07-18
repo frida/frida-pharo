@@ -1,17 +1,21 @@
 # frida-pharo bootstrap build/test loop.
 #
 # Targets:
-#   make lib       - link frida-core (+deps) into a uFFI-loadable shared library
+#   make lib       - link a frida-core devkit into a uFFI-loadable shared library
 #   make generate  - run the Python generator, emitting Tonel into src/FridaPharo
 #   make image     - load the baseline into a fresh Pharo image (build/pharo/FridaBuilt.image)
 #   make test      - run the SUnit suite headless against that image
 #   make all       - lib + generate + image + test
 
 # --- Configuration (override on the command line as needed) ---------------
+# DEVKIT is an extracted frida-core devkit (the single libfrida-core.a + header
+# + .gir); `make lib` links it. Download a published one or build a core devkit
+# from a frida-core tree (`--with-devkits=core`). FRIDA_CORE/FRIDA_MACHINE locate
+# a frida-core build tree, used only by `make generate` for the GObject .gir set.
+DEVKIT          ?=
 FRIDA_CORE      ?= /Users/oleavr/src/frida-core
 FRIDA_MACHINE   ?= macos-arm64
 FRIDA_BUILD     := $(FRIDA_CORE)/build/$(FRIDA_MACHINE)
-FRIDA_SDK       := $(FRIDA_CORE)/deps/sdk-$(FRIDA_MACHINE)/lib
 GIR_DIR         := $(FRIDA_BUILD)/src/api
 
 REPO            := $(abspath .)
@@ -39,15 +43,13 @@ CORE_LIB        := $(REPO)/build/dylib/libfrida-core.$(LIBEXT)
 all: lib generate image test
 
 # --- 1. Shared library ----------------------------------------------------
-# frida-core ships as static archives. tools/build-lib.sh derives the full,
-# ordered dependency list from frida-core's own pkg-config metadata and resolves
-# archive paths from the build tree/SDK, so the recipe is not pinned to exact
-# meson subpaths. It force_loads only the archives whose GObject registrations
-# must survive dead-stripping.
+# Link the devkit's single self-contained archive into libfrida-core (see
+# tools/build-lib.sh). Requires DEVKIT=<extracted devkit dir>.
 lib: $(CORE_LIB)
 
 $(CORE_LIB):
-	bash tools/build-lib.sh $(FRIDA_CORE) $(FRIDA_MACHINE) $@
+	@test -n "$(DEVKIT)" || { echo "set DEVKIT=<extracted frida-core devkit dir>"; exit 1; }
+	bash tools/build-lib.sh $(DEVKIT) $@
 
 # --- 2. Generate Tonel from .gir -----------------------------------------
 generate:
