@@ -68,10 +68,11 @@ platform_setup () {
       system_libs=(-framework Foundation -framework AppKit -framework IOKit
         -framework Security -framework CoreFoundation -framework CoreServices
         -framework CoreGraphics -framework Network -lresolv -lbsm -lm)
-      # Discard code unreachable from the exported roots. Constructors / +load /
+      # Discard code unreachable from the exported roots (constructors / +load /
       # module-init reachable from the force_loaded archives stay live, so the
-      # GObject type registrations survive.
-      strip_args=(-Wl,-dead_strip)
+      # GObject type registrations survive), then drop the local symbol table
+      # and debug info. The dynamic export trie is left intact.
+      strip_args=(-Wl,-dead_strip -Wl,-x -Wl,-S)
       ;;
     *)
       # GNU ld: --whole-archive brackets the force-loaded archives. Emit them as
@@ -79,7 +80,9 @@ platform_setup () {
       force_load_prefix () { printf -- '-Wl,--whole-archive,%s,--no-whole-archive' "$1"; }
       soname_args=(-Wl,-soname,"$(basename "$OUT")")
       system_libs=(-lpthread -ldl -lm -lrt -lresolv)
-      strip_args=(-Wl,--gc-sections)
+      # --gc-sections drops unreachable sections; -s strips all non-dynamic
+      # symbols and debug info (the .dynsym export table is kept).
+      strip_args=(-Wl,--gc-sections -Wl,-s)
       ;;
   esac
 }
