@@ -63,8 +63,9 @@ device resume: pid.
 
 Async Frida operations (`attach:`, `spawn:`, `enumerateProcesses:`, ...) are
 exposed as ordinary synchronous-looking Pharo methods: the call is scheduled on
-Frida's own thread and the calling Pharo process blocks on a semaphore until the
-result (or a `FridaError`) comes back.
+the GMainContext that `FridaMainLoop` drives, and the calling Pharo process
+blocks on a semaphore until the loop's dispatch delivers the result — on the
+Pharo thread — or raises a `FridaError`.
 
 ## Building from source
 
