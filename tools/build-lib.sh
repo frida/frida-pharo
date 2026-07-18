@@ -28,7 +28,38 @@
 # system libs) is shared by both modes via platform_setup.
 set -euo pipefail
 
-# Sets: force_load_prefix (fn), soname_args[], system_libs[]. Requires $OUT.
+# Restrict the shared library's dynamic exports to the symbols the Pharo uFFI
+# layer actually imports -- every ffiCall target plus the glibFunction:/
+# symbolAvailable: string literals in the vendored .st sources. This keeps the
+# export table to the ~430 frida_*/g_* the binding calls (down from thousands of
+# internal gum/gumjs/openssl/glib symbols) and, paired with dead-stripping,
+# gives those exports as the roots for discarding unreachable code. Sets
+# export_args[]; requires $OUT.
+setup_export_list () {
+  local src symbols list
+  src="$(cd "$(dirname "$0")/.." && pwd)/src"
+  symbols=$(
+    {
+      perl -ne 'while (/ffiCall:\s*#\(\s*\S+\s+(\w+)\s*\(/g) { print "$1\n" }' "$src"/FridaPharo/*.st
+      perl -ne "while (/(?:glibFunction|symbolAvailable):\s*'([A-Za-z_]\w*)'/g) { print \"\$1\\n\" }" \
+        "$src"/FridaPharo/*.st "$src"/FridaPharo-Tests/*.st
+    } | sort -u
+  )
+  list="$OUT.exported-symbols"
+  case "$(uname -s)" in
+    Darwin)
+      printf '_%s\n' $symbols > "$list"
+      export_args=(-Wl,-exported_symbols_list,"$list")
+      ;;
+    *)
+      { echo '{'; echo '  global:'; printf '    %s;\n' $symbols; echo '  local: *;'; echo '};'; } > "$list"
+      export_args=(-Wl,--version-script="$list")
+      ;;
+  esac
+}
+
+# Sets: force_load_prefix (fn), soname_args[], system_libs[], strip_args[].
+# Requires $OUT.
 platform_setup () {
   case "$(uname -s)" in
     Darwin)
@@ -37,6 +68,10 @@ platform_setup () {
       system_libs=(-framework Foundation -framework AppKit -framework IOKit
         -framework Security -framework CoreFoundation -framework CoreServices
         -framework CoreGraphics -framework Network -lresolv -lbsm -lm)
+      # Discard code unreachable from the exported roots. Constructors / +load /
+      # module-init reachable from the force_loaded archives stay live, so the
+      # GObject type registrations survive.
+      strip_args=(-Wl,-dead_strip)
       ;;
     *)
       # GNU ld: --whole-archive brackets the force-loaded archives. Emit them as
@@ -44,6 +79,7 @@ platform_setup () {
       force_load_prefix () { printf -- '-Wl,--whole-archive,%s,--no-whole-archive' "$1"; }
       soname_args=(-Wl,-soname,"$(basename "$OUT")")
       system_libs=(-lpthread -ldl -lm -lrt -lresolv)
+      strip_args=(-Wl,--gc-sections)
       ;;
   esac
 }
@@ -87,11 +123,14 @@ if [ "${1:-}" = "--devkit" ]; then
   done < <(nm "$archive" 2>/dev/null | awk '$2 == "T" && $3 ~ /^_frida_g_/ { print $3 }' | sort -u)
 
   mkdir -p "$(dirname "$OUT")"
+  setup_export_list
   exec clang -shared -o "$OUT" \
     "$(force_load_prefix "$archive")" \
     -L"$DEVKIT" \
     "${extra_libs[@]}" \
     ${alias_args[@]+"${alias_args[@]}"} \
+    "${export_args[@]}" \
+    "${strip_args[@]}" \
     "${soname_args[@]}"
 fi
 
@@ -139,9 +178,12 @@ search_args=()
 for d in $archive_dirs; do search_args+=(-L"$d"); done
 
 mkdir -p "$(dirname "$OUT")"
+setup_export_list
 exec clang -shared -o "$OUT" \
   "${force_load_args[@]}" \
   "${search_args[@]}" \
   "${link_args[@]}" \
   "${system_libs[@]}" \
+  "${export_args[@]}" \
+  "${strip_args[@]}" \
   "${soname_args[@]}"
