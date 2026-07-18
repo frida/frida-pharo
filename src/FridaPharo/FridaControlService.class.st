@@ -34,14 +34,34 @@ FridaControlService >> endpointParams [
 { #category : 'generated' }
 FridaControlService >> start [
 	| raw |
-	raw := self asyncBegin: 'frida_control_service_start' finish: 'frida_control_service_start_finish'.
+	raw := self asyncCall: [ :onReady | self startBegin: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self startFinish: asyncResult errorHolder: errorHolder ].
 	^ self
+]
+
+{ #category : 'generated' }
+FridaControlService >> startBegin: cancellable onReady: onReady userData: userData [
+	^ self ffiCall: #(void frida_control_service_start (self, void* cancellable, void* onReady, void* userData)) library: FridaLibrary
+]
+
+{ #category : 'generated' }
+FridaControlService >> startFinish: asyncResult errorHolder: errorHolder [
+	^ self ffiCall: #(void frida_control_service_start_finish (self, void* asyncResult, void* errorHolder)) library: FridaLibrary
 ]
 
 { #category : 'generated' }
 FridaControlService >> stop [
 	| raw |
-	raw := self asyncBegin: 'frida_control_service_stop' finish: 'frida_control_service_stop_finish'.
+	raw := self asyncCall: [ :onReady | self stopBegin: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self stopFinish: asyncResult errorHolder: errorHolder ].
 	^ self
+]
+
+{ #category : 'generated' }
+FridaControlService >> stopBegin: cancellable onReady: onReady userData: userData [
+	^ self ffiCall: #(void frida_control_service_stop (self, void* cancellable, void* onReady, void* userData)) library: FridaLibrary
+]
+
+{ #category : 'generated' }
+FridaControlService >> stopFinish: asyncResult errorHolder: errorHolder [
+	^ self ffiCall: #(void frida_control_service_stop_finish (self, void* asyncResult, void* errorHolder)) library: FridaLibrary
 ]
 

@@ -16,8 +16,18 @@ FridaBus >> isDetached [
 { #category : 'generated' }
 FridaBus >> attach [
 	| raw |
-	raw := self asyncBegin: 'frida_bus_attach' finish: 'frida_bus_attach_finish'.
+	raw := self asyncCall: [ :onReady | self attachBegin: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self attachFinish: asyncResult errorHolder: errorHolder ].
 	^ self
+]
+
+{ #category : 'generated' }
+FridaBus >> attachBegin: cancellable onReady: onReady userData: userData [
+	^ self ffiCall: #(void frida_bus_attach (self, void* cancellable, void* onReady, void* userData)) library: FridaLibrary
+]
+
+{ #category : 'generated' }
+FridaBus >> attachFinish: asyncResult errorHolder: errorHolder [
+	^ self ffiCall: #(void frida_bus_attach_finish (self, void* asyncResult, void* errorHolder)) library: FridaLibrary
 ]
 
 { #category : 'generated' }
@@ -32,5 +42,19 @@ FridaBus >> post: json data: data [
 	result := self postRaw: json marshalled0: marshalled0.
 	FridaGlue bytesUnref: marshalled0.
 	^ self
+]
+
+{ #category : 'generated' }
+FridaBus >> onDetached: aBlock [
+	| callback |
+	callback := FFICallback signature: #(void (void* instance, void* userData)) block: [ :instance :userData | aBlock valueWithArguments: { } ].
+	^ self connectSignal: 'detached' callback: callback
+]
+
+{ #category : 'generated' }
+FridaBus >> onMessage: aBlock [
+	| callback |
+	callback := FFICallback signature: #(void (void* instance, String json, void* data, void* userData)) block: [ :instance :json :data :userData | aBlock valueWithArguments: { json . self byteArrayFromBytes: data owned: false } ].
+	^ self connectSignal: 'message' callback: callback
 ]
 

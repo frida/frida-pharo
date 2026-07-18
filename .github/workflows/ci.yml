@@ -1,8 +1,8 @@
 name: CI
 
 # Builds libfrida-core.so from frida-core's PUBLISHED devkit (a self-contained
-# static lib + header + .pc), builds the glue, loads the vendored Tonel bindings
-# into a pinned Pharo image, and runs the SUnit suite headless.
+# static lib + header + .pc), loads the vendored Tonel bindings into a pinned
+# Pharo image, and runs the SUnit suite headless.
 #
 # This workflow only actually runs once the repo is pushed to GitHub. It is
 # written correct-by-construction; first-run iteration is expected on the Linux
@@ -39,8 +39,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            build-essential clang python3 pkg-config curl \
-            libglib2.0-dev
+            build-essential clang python3 pkg-config curl
 
       - name: Download and extract the frida-core devkit
         run: |
@@ -72,11 +71,6 @@ jobs:
           nm -D build/dylib/libfrida-core.so | grep -wE 'g_object_unref|_frida_g_object_unref' | head
           echo "== frida_* export (sanity) =="
           nm -D --defined-only build/dylib/libfrida-core.so | grep -c ' frida_version_string$' || true
-
-      - name: Build the glue shim
-        run: |
-          make glue \
-            GLUE_CFLAGS="$(pkg-config --cflags glib-2.0 gobject-2.0 gio-2.0)"
 
       - name: Fetch a pinned Pharo image + VM
         run: |
@@ -113,10 +107,10 @@ jobs:
 #  * glib symbol resolution: the devkit renames every bundled glib symbol with a
 #    _frida_ prefix (g_object_unref -> _frida_g_object_unref), so the plain names
 #    are not exported. build-dylib.sh --devkit re-exports an alias from each
-#    prefixed symbol back to its plain name (-Wl,--defsym), so the FFI prims and
-#    the glue bind g_* to frida's OWN bundled glib -- the single GType universe
-#    its GObjects live in. No system glib is used at runtime; libglib2.0-dev is
-#    installed only for the glue's compile-time headers (ABI-stable opaque types).
-#    The probe step verifies the alias took (plain and prefixed names share one
-#    address). If it ever fails, revisit the _frida_ prefix assumption.
+#    prefixed symbol back to its plain name (-Wl,--defsym), so the FFI prims
+#    bind g_* (g_hash_table_*, g_variant_*, g_object_unref, ...) to frida's OWN
+#    bundled glib -- the single GType universe its GObjects live in. No system
+#    glib is used at build or runtime. The probe step verifies the alias took
+#    (plain and prefixed names share one address). If it ever fails, revisit the
+#    _frida_ prefix assumption.
 #  * `make test` fails the job if the SUnit runner reports failures/errors.

@@ -51,12 +51,6 @@ FACADE_METHODS = (
     FacadeMethod(
         target="FridaScript",
         class_side=False,
-        selector="onMessage: aBlock",
-        body=["^ FridaSignalSubscription onScriptMessage: self do: aBlock"],
-    ),
-    FacadeMethod(
-        target="FridaScript",
-        class_side=False,
         selector="exports",
         body=["^ FridaRpcExports on: self"],
     ),

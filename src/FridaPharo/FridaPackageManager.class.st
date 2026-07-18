@@ -37,15 +37,44 @@ FridaPackageManager >> registry: aValue [
 
 { #category : 'generated' }
 FridaPackageManager >> search: query options: options [
-	| raw |
-	raw := self asyncBegin: 'frida_package_manager_search' finish: 'frida_package_manager_search_finish' args: { { #string. query } . { #pointer. (options isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options getHandle ]) } }.
-	^ FridaPackageSearchResult fromOwnedHandle: raw
+	| marshalled0 raw |
+	marshalled0 := options isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options getHandle ].
+	raw := self asyncCall: [ :onReady | self searchBegin: query marshalled0: marshalled0 cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self searchFinish: asyncResult errorHolder: errorHolder ].
+	^ FridaPackageSearchResult fromOwnedHandle: (raw)
+]
+
+{ #category : 'generated' }
+FridaPackageManager >> searchBegin: query marshalled0: marshalled0 cancellable: cancellable onReady: onReady userData: userData [
+	^ self ffiCall: #(void frida_package_manager_search (self, String query, void* marshalled0, void* cancellable, void* onReady, void* userData)) library: FridaLibrary
+]
+
+{ #category : 'generated' }
+FridaPackageManager >> searchFinish: asyncResult errorHolder: errorHolder [
+	^ self ffiCall: #(void* frida_package_manager_search_finish (self, void* asyncResult, void* errorHolder)) library: FridaLibrary
 ]
 
 { #category : 'generated' }
 FridaPackageManager >> install: options [
-	| raw |
-	raw := self asyncBegin: 'frida_package_manager_install' finish: 'frida_package_manager_install_finish' args: { { #pointer. (options isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options getHandle ]) } }.
-	^ FridaPackageInstallResult fromOwnedHandle: raw
+	| marshalled0 raw |
+	marshalled0 := options isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options getHandle ].
+	raw := self asyncCall: [ :onReady | self installBegin: marshalled0 cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self installFinish: asyncResult errorHolder: errorHolder ].
+	^ FridaPackageInstallResult fromOwnedHandle: (raw)
+]
+
+{ #category : 'generated' }
+FridaPackageManager >> installBegin: marshalled0 cancellable: cancellable onReady: onReady userData: userData [
+	^ self ffiCall: #(void frida_package_manager_install (self, void* marshalled0, void* cancellable, void* onReady, void* userData)) library: FridaLibrary
+]
+
+{ #category : 'generated' }
+FridaPackageManager >> installFinish: asyncResult errorHolder: errorHolder [
+	^ self ffiCall: #(void* frida_package_manager_install_finish (self, void* asyncResult, void* errorHolder)) library: FridaLibrary
+]
+
+{ #category : 'generated' }
+FridaPackageManager >> onInstallProgress: aBlock [
+	| callback |
+	callback := FFICallback signature: #(void (void* instance, FridaPackageInstallPhase phase, double fraction, String details, void* userData)) block: [ :instance :phase :fraction :details :userData | aBlock valueWithArguments: { phase . fraction . details } ].
+	^ self connectSignal: 'install-progress' callback: callback
 ]
 

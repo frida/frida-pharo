@@ -7,8 +7,9 @@ The binding is **auto-generated** from Frida's GObject-Introspection metadata
 (`Frida-1.0.gir`) by the shared `frida_bindgen_core` generator, and vendored as
 [Tonel](https://github.com/pharo-vcs/tonel) source under `src/FridaPharo/`. At
 runtime it talks to a hand-linked `libfrida-core` shared library through Pharo's
-uFFI, with a small C shim (`libfrida-pharo-glue`) bridging Frida's asynchronous,
-single-threaded C API onto the Pharo scheduler.
+uFFI. There is no C glue: Frida is initialised with the GLib runtime and its
+GMainContext is driven directly from Smalltalk (`FridaMainLoop`), so async
+completions and signals dispatch on the Pharo thread.
 
 ## Loading the bindings
 
@@ -22,9 +23,8 @@ Metacello new
 ```
 
 At image start-up (or before the first call) the runtime dynamically loads the
-two shared libraries. Point it at them via the `FRIDA_CORE_DYLIB` and
-`FRIDA_PHARO_GLUE` environment variables (as the test harness does), or install
-them where the OS loader can find them.
+shared library. Point it at it via the `FRIDA_CORE_DYLIB` environment variable
+(as the test harness does), or install it where the OS loader can find it.
 
 ## Usage
 
@@ -69,11 +69,10 @@ result (or a `FridaError`) comes back.
    frida-core's own pkg-config metadata. The link vocabulary is OS-conditional
    (`-force_load` + frameworks on macOS, `--whole-archive` + system libs on
    Linux), so it produces a `.dylib` or `.so` as appropriate.
-2. **glue** — compiles the `libfrida-pharo-glue` async/signal shim.
-3. **generate** — runs the Python generator over the `.gir` files, refreshing the
+2. **generate** — runs the Python generator over the `.gir` files, refreshing the
    Tonel sources under `src/FridaPharo/`.
-4. **image** — loads the baseline into a fresh Pharo image.
-5. **test** — runs the SUnit suite headless.
+3. **image** — loads the baseline into a fresh Pharo image.
+4. **test** — runs the SUnit suite headless.
 
 Override the defaults on the command line as needed, e.g.:
 
@@ -87,7 +86,6 @@ make all FRIDA_CORE=/path/to/frida-core FRIDA_MACHINE=linux-x86_64
 | ------------------------ | ------------------------------------------------------ |
 | `frida_pharo/`           | The generator: thin model subclasses, data-only `customization.py`, type-agnostic `codegen.py`. |
 | `frida-bindgen/`         | The shared `frida_bindgen_core` generator (submodule). |
-| `glue/frida-pharo-glue.c`| The C async/signal bridge.                             |
-| `src/FridaPharo/`        | Vendored generated Tonel sources + the hand-written runtime base classes (`FridaObject`, `FridaSignalSubscription`, `FridaVariant`, ...). |
+| `src/FridaPharo/`        | Vendored generated Tonel sources + the hand-written runtime base classes (`FridaObject`, `FridaMainLoop`, `FridaSignalSubscription`, `FridaVariant`, ...). |
 | `src/FridaPharo-Tests/`  | The SUnit suite.                                        |
 | `tools/build-dylib.sh`   | Reproducible frida-core static-to-shared link step.    |

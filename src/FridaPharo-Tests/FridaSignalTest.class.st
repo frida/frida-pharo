@@ -11,23 +11,20 @@ Class {
 
 { #category : 'tests' }
 FridaSignalTest >> testSessionDetachedSignal [
-	| device session args fired subscription |
+	| device session reason fired subscription |
 	device := Frida localDevice.
 	session := device attach: 0.
 
-	args := nil.
+	reason := nil.
 	fired := Semaphore new.
-	subscription := session on: 'detached' do: [ :signalArgs |
-		args := signalArgs.
+	subscription := session onDetached: [ :detachReason :crash |
+		reason := detachReason.
 		fired signal ].
 
 	session detach.
 
 	[ (fired waitTimeoutSeconds: 10)
 		ifTrue: [ self fail: 'detached signal not delivered within 10s' ].
-		self assert: args isArray.
-		self assert: args notEmpty.
-		"first arg is the FridaSessionDetachReason, decoded to an Integer"
-		self assert: (args first isKindOf: Integer) ]
+		self assert: reason notNil ]
 		ensure: [ subscription off ]
 ]

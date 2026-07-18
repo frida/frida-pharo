@@ -11,7 +11,17 @@ Class {
 { #category : 'generated' }
 FridaAuthenticationService >> authenticate: token [
 	| raw |
-	raw := self asyncBegin: 'frida_authentication_service_authenticate' finish: 'frida_authentication_service_authenticate_finish' args: { { #string. token } }.
-	^ self stringFromCharPointer: raw owned: true
+	raw := self asyncCall: [ :onReady | self authenticateBegin: token cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self authenticateFinish: asyncResult errorHolder: errorHolder ].
+	^ raw
+]
+
+{ #category : 'generated' }
+FridaAuthenticationService >> authenticateBegin: token cancellable: cancellable onReady: onReady userData: userData [
+	^ self ffiCall: #(void frida_authentication_service_authenticate (self, String token, void* cancellable, void* onReady, void* userData)) library: FridaLibrary
+]
+
+{ #category : 'generated' }
+FridaAuthenticationService >> authenticateFinish: asyncResult errorHolder: errorHolder [
+	^ self ffiCall: #(String frida_authentication_service_authenticate_finish (self, void* asyncResult, void* errorHolder)) library: FridaLibrary
 ]
 

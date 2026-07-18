@@ -86,15 +86,35 @@ FridaPortalService >> addControlEndpoint: endpointParams [
 { #category : 'generated' }
 FridaPortalService >> start [
 	| raw |
-	raw := self asyncBegin: 'frida_portal_service_start' finish: 'frida_portal_service_start_finish'.
+	raw := self asyncCall: [ :onReady | self startBegin: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self startFinish: asyncResult errorHolder: errorHolder ].
 	^ self
+]
+
+{ #category : 'generated' }
+FridaPortalService >> startBegin: cancellable onReady: onReady userData: userData [
+	^ self ffiCall: #(void frida_portal_service_start (self, void* cancellable, void* onReady, void* userData)) library: FridaLibrary
+]
+
+{ #category : 'generated' }
+FridaPortalService >> startFinish: asyncResult errorHolder: errorHolder [
+	^ self ffiCall: #(void frida_portal_service_start_finish (self, void* asyncResult, void* errorHolder)) library: FridaLibrary
 ]
 
 { #category : 'generated' }
 FridaPortalService >> stop [
 	| raw |
-	raw := self asyncBegin: 'frida_portal_service_stop' finish: 'frida_portal_service_stop_finish'.
+	raw := self asyncCall: [ :onReady | self stopBegin: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self stopFinish: asyncResult errorHolder: errorHolder ].
 	^ self
+]
+
+{ #category : 'generated' }
+FridaPortalService >> stopBegin: cancellable onReady: onReady userData: userData [
+	^ self ffiCall: #(void frida_portal_service_stop (self, void* cancellable, void* onReady, void* userData)) library: FridaLibrary
+]
+
+{ #category : 'generated' }
+FridaPortalService >> stopFinish: asyncResult errorHolder: errorHolder [
+	^ self ffiCall: #(void frida_portal_service_stop_finish (self, void* asyncResult, void* errorHolder)) library: FridaLibrary
 ]
 
 { #category : 'generated' }
@@ -152,5 +172,40 @@ FridaPortalService >> tag: connectionId tag: tag [
 { #category : 'generated' }
 FridaPortalService >> untag: connectionId tag: tag [
 	^ self ffiCall: #(void frida_portal_service_untag (self, uint connectionId, String tag)) library: FridaLibrary
+]
+
+{ #category : 'generated' }
+FridaPortalService >> onNodeJoined: aBlock [
+	| callback |
+	callback := FFICallback signature: #(void (void* instance, uint connectionId, void* application, void* userData)) block: [ :instance :connectionId :application :userData | aBlock valueWithArguments: { connectionId . FridaObject wrapBorrowed: application } ].
+	^ self connectSignal: 'node-joined' callback: callback
+]
+
+{ #category : 'generated' }
+FridaPortalService >> onNodeLeft: aBlock [
+	| callback |
+	callback := FFICallback signature: #(void (void* instance, uint connectionId, void* application, void* userData)) block: [ :instance :connectionId :application :userData | aBlock valueWithArguments: { connectionId . FridaObject wrapBorrowed: application } ].
+	^ self connectSignal: 'node-left' callback: callback
+]
+
+{ #category : 'generated' }
+FridaPortalService >> onAuthenticated: aBlock [
+	| callback |
+	callback := FFICallback signature: #(void (void* instance, uint connectionId, String sessionInfo, void* userData)) block: [ :instance :connectionId :sessionInfo :userData | aBlock valueWithArguments: { connectionId . sessionInfo } ].
+	^ self connectSignal: 'authenticated' callback: callback
+]
+
+{ #category : 'generated' }
+FridaPortalService >> onSubscribe: aBlock [
+	| callback |
+	callback := FFICallback signature: #(void (void* instance, uint connectionId, void* userData)) block: [ :instance :connectionId :userData | aBlock valueWithArguments: { connectionId } ].
+	^ self connectSignal: 'subscribe' callback: callback
+]
+
+{ #category : 'generated' }
+FridaPortalService >> onMessage: aBlock [
+	| callback |
+	callback := FFICallback signature: #(void (void* instance, uint connectionId, String json, void* data, void* userData)) block: [ :instance :connectionId :json :data :userData | aBlock valueWithArguments: { connectionId . json . self byteArrayFromBytes: data owned: false } ].
+	^ self connectSignal: 'message' callback: callback
 ]
 

@@ -18,7 +18,7 @@ FridaScriptMessageTest >> testAttachCreateScriptReceivesMessage [
 
 	received := nil.
 	delivered := Semaphore new.
-	subscription := script onMessage: [ :message |
+	subscription := script onMessage: [ :message :data |
 		received := message.
 		delivered signal ].
 

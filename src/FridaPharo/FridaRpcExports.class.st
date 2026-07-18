@@ -73,6 +73,6 @@ FridaRpcExports >> startOn: aScript [
 	pending := Dictionary new.
 	nextId := 0.
 	mutex := Mutex new.
-	subscription := aScript onMessage: [ :json | self handleMessage: json ].
+	subscription := aScript onMessage: [ :json :data | self handleMessage: json ].
 	^ self
 ]

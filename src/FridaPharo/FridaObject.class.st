@@ -3,8 +3,8 @@ Hand-written base class for every generated Frida GObject wrapper.
 
 Wraps an opaque Frida* pointer (via FFIExternalObject's #handle) and manages its
 GObject refcount: owned handles are unref'd when the Pharo wrapper is finalized;
-borrowed handles are ref'd on wrap. Also hosts the cross-thread async round-trip
-(#asyncBegin:finish:) used by every generated async method.
+borrowed handles are ref'd on wrap. Also hosts the async round-trip
+(#asyncCall:finish:) that every generated async method drives on FridaMainLoop.
 
 Note: uFFI compiles any method containing #ffiCall: as the raw callout, so each
 C call lives alone in a #prim* primitive and the logic lives in its caller.
@@ -18,13 +18,25 @@ Class {
 }
 
 { #category : 'primitives' }
-FridaObject class >> primInit [
-	^ self ffiCall: #(void frida_init()) library: FridaLibrary
+FridaObject class >> primInitWithRuntime: aRuntime [
+	"FRIDA_RUNTIME_GLIB = 0: Frida runs no thread of its own and schedules on the
+	 default GMainContext, which FridaMainLoop drives from Pharo."
+	^ self ffiCall: #(void frida_init_with_runtime (int aRuntime)) library: FridaLibrary
 ]
 
 { #category : 'primitives' }
 FridaObject class >> primRef: aHandle [
 	^ self ffiCall: #(void* g_object_ref (void* aHandle)) library: FridaLibrary
+]
+
+{ #category : 'primitives' }
+FridaObject >> primConnect: aSignalName handler: aHandler data: aData destroy: aNotify flags: aFlags [
+	^ self ffiCall: #(ulong g_signal_connect_data (self, String aSignalName, void* aHandler, void* aData, void* aNotify, int aFlags)) library: FridaLibrary
+]
+
+{ #category : 'primitives' }
+FridaObject >> primDisconnect: aHandlerId [
+	^ self ffiCall: #(void g_signal_handler_disconnect (self, ulong aHandlerId)) library: FridaLibrary
 ]
 
 { #category : 'primitives' }
@@ -35,7 +47,8 @@ FridaObject class >> primUnref: aHandle [
 { #category : 'initialization' }
 FridaObject class >> ensureFridaInitialized [
 	Initialized ifNotNil: [ ^ self ].
-	self primInit.
+	self primInitWithRuntime: 0.
+	FridaMainLoop default.
 	Initialized := true
 ]
 
@@ -103,52 +116,30 @@ FridaObject class >> wrapOwned: aHandle [
 ]
 
 { #category : 'async' }
-FridaObject >> asyncBegin: beginSymbol finish: finishSymbol [
-	^ self asyncBegin: beginSymbol finish: finishSymbol args: #()
-]
-
-{ #category : 'async' }
-FridaObject >> asyncBegin: beginSymbol finish: finishSymbol args: anArgList [
-	"Schedule beginSymbol (with anArgList marshalled onto the operation) on
-	 Frida's own thread; block this Pharo process on a Semaphore until the
-	 completion callback has run finishSymbol on Frida's thread; then return the
-	 raw result pointer (or raise FridaError). anArgList is an ordered collection
-	 of #(kind value) pairs where kind is #int, #string, #pointer, #bytes,
-	 #variant or #vardict. Reference-typed args (bytes/variant/vardict) are built
-	 here and owned by the operation, which frees them after _finish. Only the
-	 wrapping of the raw result happens back here on the Pharo thread."
-	| sem index op errorHandle raw message code |
+FridaObject >> asyncCall: beginBlock finish: finishBlock [
+	"Drive an async _begin/_finish pair on the Frida main loop (no C glue).
+	 beginBlock is evaluated with a GAsyncReadyCallback handle and issues the
+	 _begin call, scheduling the operation on the default GMainContext. When it
+	 completes, FridaMainLoop's dispatch invokes the callback on the VM thread;
+	 finishBlock runs there with the GAsyncResult and a GError** holder, calls
+	 _finish, and answers the raw result. This process blocks on a Semaphore until
+	 then, then raises FridaError if _finish set an error, else answers the raw
+	 result. Reference-typed args (GBytes/GVariant/vardict) are built and freed by
+	 the generated caller around this send."
+	| sem callback errorHolder result |
 	FridaObject ensureFridaInitialized.
 	sem := Semaphore new.
-	index := Smalltalk registerExternalObject: sem.
-	op := FridaGlue
-		operationForIndex: index
-		self: self getHandle
-		begin: beginSymbol
-		finish: finishSymbol
-		cancellable: ExternalAddress null.
-	anArgList doWithIndex: [ :pair :position | | kind value slot |
-		kind := pair first.
-		value := pair second.
-		slot := position - 1.
-		kind == #int ifTrue: [ FridaGlue operation: op setIntArg: slot value: value ].
-		kind == #string ifTrue: [ FridaGlue operation: op setStringArg: slot value: value ].
-		kind == #pointer ifTrue: [ FridaGlue operation: op setPointerArg: slot value: value ].
-		kind == #bytes ifTrue: [ FridaGlue operation: op setOwnedArg: slot value: (self bytesFromByteArray: value) freeKind: 1 ].
-		kind == #variant ifTrue: [ FridaGlue operation: op setOwnedArg: slot value: (FridaVariant encode: value) freeKind: 2 ].
-		kind == #vardict ifTrue: [ FridaGlue operation: op setOwnedArg: slot value: (FridaVardict encode: value) freeKind: 3 ] ].
-	FridaGlue schedule: op.
+	errorHolder := self newErrorHolder.
+	callback := FFICallback
+		signature: #(void (void* source, void* asyncResult, void* userData))
+		block: [ :source :asyncResult :userData |
+			result := finishBlock value: asyncResult value: errorHolder.
+			sem signal ].
+	beginBlock value: callback getHandle.
+	FridaMainLoop default wakeup.
 	sem wait.
-	Smalltalk unregisterExternalObject: sem.
-	errorHandle := FridaGlue errorOf: op.
-	(errorHandle isNil or: [ errorHandle isNull ]) ifFalse: [
-		message := FridaGlue errorMessage: errorHandle.
-		code := FridaGlue errorCode: errorHandle.
-		FridaGlue free: op.
-		^ FridaError signalMessage: message code: code ].
-	raw := FridaGlue resultOf: op.
-	FridaGlue free: op.
-	^ raw
+	self checkError: errorHolder.
+	^ result
 ]
 
 { #category : 'errors' }
@@ -248,11 +239,15 @@ FridaObject >> newErrorHolder [
 ]
 
 { #category : 'signals' }
-FridaObject >> on: aSignalName do: aBlock [
-	"Subscribe to any GObject signal on this object; the block receives an Array
-	 of the decoded signal arguments, delivered on the Pharo thread. Returns a
-	 FridaSignalSubscription; send it #off to unsubscribe."
-	^ FridaSignalSubscription onObject: self signal: aSignalName do: aBlock
+FridaObject >> connectSignal: aSignalName callback: aCallback [
+	"Connect a retained typed FFICallback (built by a generated onXxx: connector)
+	 to aSignalName. The callback fires on the VM thread during FridaMainLoop's
+	 dispatch. Answer a FridaSignalSubscription; send it #off to disconnect and
+	 release the callback."
+	| handlerId |
+	FridaObject ensureFridaInitialized.
+	handlerId := self primConnect: aSignalName handler: aCallback getHandle data: ExternalAddress null destroy: ExternalAddress null flags: 0.
+	^ FridaSignalSubscription source: self handlerId: handlerId callback: aCallback
 ]
 
 { #category : 'finalization' }

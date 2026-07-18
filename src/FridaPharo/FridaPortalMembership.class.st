@@ -11,7 +11,17 @@ Class {
 { #category : 'generated' }
 FridaPortalMembership >> terminate [
 	| raw |
-	raw := self asyncBegin: 'frida_portal_membership_terminate' finish: 'frida_portal_membership_terminate_finish'.
+	raw := self asyncCall: [ :onReady | self terminateBegin: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self terminateFinish: asyncResult errorHolder: errorHolder ].
 	^ self
+]
+
+{ #category : 'generated' }
+FridaPortalMembership >> terminateBegin: cancellable onReady: onReady userData: userData [
+	^ self ffiCall: #(void frida_portal_membership_terminate (self, void* cancellable, void* onReady, void* userData)) library: FridaLibrary
+]
+
+{ #category : 'generated' }
+FridaPortalMembership >> terminateFinish: asyncResult errorHolder: errorHolder [
+	^ self ffiCall: #(void frida_portal_membership_terminate_finish (self, void* asyncResult, void* errorHolder)) library: FridaLibrary
 ]
 

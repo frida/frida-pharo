@@ -208,6 +208,11 @@ def _emit_object_type(obj, model) -> str:
         if section is not None:
             sections.append(section)
 
+    for signal in obj.signals:
+        section = _emit_signal_method(obj, signal, model)
+        if section is not None:
+            sections.append(section)
+
     if obj.is_frida_list:
         sections.extend(_emit_list_protocol(obj))
 
@@ -430,91 +435,164 @@ def _emit_method(obj, meth, model) -> Optional[str]:
 
 
 def _emit_async_method(obj, meth, model) -> Optional[str]:
-    # The cancellable is supplied as NULL by the glue, so it isn't a Pharo param.
+    # The cancellable is passed as NULL, so it is not a Pharo parameter.
     in_params = [p for p in meth.input_parameters
                  if p.type.name != "Gio.Cancellable"]
 
-    arg_descriptors = []
     params = []
     for p in in_params:
         mapped = _map_type(p.type, model)
-        descriptor = _async_arg_descriptor(mapped)
-        if descriptor is None:
+        if mapped is None or mapped.kind == "strv":
             return None
-        name = to_camel_case(p.name)
-        params.append((name, mapped))
-        arg_descriptors.append(descriptor(name))
+        params.append((to_camel_case(p.name), mapped))
 
     ret = meth.return_value.type if meth.return_value is not None else None
     mapped = _map_type(ret, model)
     if mapped is None:
         return None
-
     transfer = (meth.return_value.transfer_ownership
                 if meth.return_value is not None else TransferOwnership.none)
-    selector = _selector(to_camel_case(meth.name), params)
-    finish_c = meth.finish_c_identifier
 
-    if arg_descriptors:
-        arg_literal = "{ " + " . ".join(arg_descriptors) + " }"
-        begin_call = (f"raw := self asyncBegin: '{meth.c_identifier}' "
-                      f"finish: '{finish_c}' args: {arg_literal}.")
-    else:
-        begin_call = (f"raw := self asyncBegin: '{meth.c_identifier}' "
-                      f"finish: '{finish_c}'.")
+    prefix = f"{obj.pharo_name} >> "
+    base = to_camel_case(meth.name)
 
-    # asyncBegin:...: is a plain method (no #ffiCall:), so wrapping the raw
-    # result here is safe. The raw result is an ExternalAddress carrying the
-    # finish return value (a handle for objects/strv/bytes, or the value in the
-    # pointer slot for scalars/booleans).
-    owned = "true" if transfer == TransferOwnership.full else "false"
-    body = ["| raw |", begin_call]
-    if mapped.kind == "object":
-        wrap = ("fromOwnedHandle:" if transfer == TransferOwnership.full
-                else "fromBorrowedHandle:")
-        body.append(f"^ {mapped.pharo_class} {wrap} raw")
-    elif mapped.kind == "strv":
-        body.append(f"^ self arrayFromStrv: raw owned: {owned}")
-    elif mapped.kind == "bytes":
-        body.append(f"^ self byteArrayFromBytes: raw owned: {owned}")
-    elif mapped.kind == "variant":
-        body.append(f"^ self valueFromVariant: raw owned: {owned}")
-    elif mapped.kind == "vardict":
-        body.append(f"^ self dictFromVardict: raw owned: {owned}")
-    elif mapped.kind == "string":
-        body.append(f"^ self stringFromCharPointer: raw owned: {owned}")
-    elif mapped.kind == "void":
-        body.append("^ self")
-    elif mapped.kind == "boolean":
-        body.append("^ raw asInteger ~= 0")
+    # Reference-typed args are built before _begin and freed after _finish, as in
+    # the synchronous emitter; the rest pass straight through (uFFI marshals
+    # FFIExternalObject handles and enum values). The result is delivered by the
+    # generated _finish prim, called on the VM thread inside FridaMainLoop's
+    # dispatch via FridaObject>>asyncCall:finish:.
+    prologue, epilogue, begin_params = [], [], []
+    marshalled = 0
+    for name, m in params:
+        if m.kind == "bytes":
+            local = f"marshalled{marshalled}"
+            marshalled += 1
+            prologue.append(f"{local} := self bytesFromByteArray: {name}.")
+            epilogue.append(f"FridaGlue bytesUnref: {local}.")
+            begin_params.append((local, Mapped("pointer", "void*")))
+        elif m.kind == "variant":
+            local = f"marshalled{marshalled}"
+            marshalled += 1
+            prologue.append(f"{local} := FridaVariant encode: {name}.")
+            epilogue.append(f"FridaGlue variantUnref: {local}.")
+            begin_params.append((local, Mapped("pointer", "void*")))
+        elif m.kind == "vardict":
+            local = f"marshalled{marshalled}"
+            marshalled += 1
+            prologue.append(f"{local} := FridaVardict encode: {name}.")
+            epilogue.append(f"FridaGlue vardictUnref: {local}.")
+            begin_params.append((local, Mapped("pointer", "void*")))
+        elif m.kind == "object":
+            local = f"marshalled{marshalled}"
+            marshalled += 1
+            prologue.append(f"{local} := {name} isNil ifTrue: [ ExternalAddress null ] ifFalse: [ {name} getHandle ].")
+            begin_params.append((local, Mapped("pointer", "void*")))
+        else:
+            begin_params.append((name, m))
+
+    trailer = [("cancellable", Mapped("pointer", "void*")),
+               ("onReady", Mapped("pointer", "void*")),
+               ("userData", Mapped("pointer", "void*"))]
+    begin_prim_params = begin_params + trailer
+    begin_base = base + "Begin"
+    begin_prim = _method(
+        f"{prefix}{_selector(begin_base, begin_prim_params)}",
+        GENERATED_TAG,
+        [f"^ self ffiCall: #(void {meth.c_identifier} "
+         f"({_ffi_arg_spec('self', begin_prim_params)})) library: FridaLibrary"],
+    )
+
+    ret_token = ("void*" if mapped.kind in ("object", "strv", "bytes", "variant", "vardict")
+                 else (mapped.token or "void"))
+    finish_base = base + "Finish"
+    finish_prim_params = [("asyncResult", Mapped("pointer", "void*")),
+                          ("errorHolder", Mapped("pointer", "void*"))]
+    finish_prim = _method(
+        f"{prefix}{_selector(finish_base, finish_prim_params)}",
+        GENERATED_TAG,
+        [f"^ self ffiCall: #({ret_token} {meth.finish_c_identifier} "
+         f"({_ffi_arg_spec('self', finish_prim_params)})) library: FridaLibrary"],
+    )
+
+    begin_send = _async_begin_send(begin_base, begin_prim_params)
+    temps = [f"marshalled{i}" for i in range(marshalled)] + ["raw"]
+    lines = ["| " + " ".join(temps) + " |"]
+    lines += prologue
+    lines.append(
+        f"raw := self asyncCall: [ :onReady | {begin_send} ] "
+        f"finish: [ :asyncResult :errorHolder | self {finish_base}: asyncResult errorHolder: errorHolder ].")
+    lines += epilogue
+    if mapped.kind == "void":
+        lines.append("^ self")
     else:
-        # scalar: the value rides in the pointer slot.
-        body.append("^ raw asInteger")
+        lines.append(f"^ {_return_wrap_expr(mapped, transfer, 'raw')}")
+    wrapper = _method(f"{prefix}{_selector(base, params)}", GENERATED_TAG, lines)
+    return wrapper + "\n" + begin_prim + "\n" + finish_prim
+
+
+def _emit_signal_method(obj, signal, model) -> Optional[str]:
+    # The C handler receives (instance, <signal args>, user_data). Build a typed
+    # uFFI callback that decodes each arg and evaluates the user block on the VM
+    # thread (during FridaMainLoop's dispatch). Answer a FridaSignalSubscription
+    # whose #off disconnects the handler and releases the callback.
+    cb_params, decoded = [], []
+    for p in signal.parameters:
+        mapped = _map_type(p.type, model)
+        if mapped is None:
+            return None
+        name = to_camel_case(p.name)
+        if mapped.kind == "object":
+            cb_params.append((name, "void*"))
+            decoded.append(f"FridaObject wrapBorrowed: {name}")
+        elif mapped.kind == "string":
+            cb_params.append((name, "String"))
+            decoded.append(name)
+        elif mapped.kind == "bytes":
+            cb_params.append((name, "void*"))
+            decoded.append(f"self byteArrayFromBytes: {name} owned: false")
+        elif mapped.kind == "variant":
+            cb_params.append((name, "void*"))
+            decoded.append(f"self valueFromVariant: {name} owned: false")
+        elif mapped.kind == "vardict":
+            cb_params.append((name, "void*"))
+            decoded.append(f"self dictFromVardict: {name} owned: false")
+        elif mapped.kind in ("scalar", "enum"):
+            cb_params.append((name, mapped.token))
+            decoded.append(name)
+        else:
+            return None
+
+    camel = to_camel_case(signal.c_name)
+    selector = "on" + camel[0].upper() + camel[1:] + ": aBlock"
+    sig = "void (void* instance"
+    for name, token in cb_params:
+        sig += f", {token} {name}"
+    sig += ", void* userData)"
+    block_head = ":instance"
+    for name, _ in cb_params:
+        block_head += f" :{name}"
+    block_head += " :userData"
+    args_literal = "{ " + " . ".join(decoded) + " }" if decoded else "{ }"
+    body = [
+        "| callback |",
+        f"callback := FFICallback signature: #({sig}) block: [ {block_head} | aBlock valueWithArguments: {args_literal} ].",
+        f"^ self connectSignal: '{signal.name}' callback: callback",
+    ]
     return _method(f"{obj.pharo_name} >> {selector}", GENERATED_TAG, body)
 
 
-def _async_arg_descriptor(mapped):
-    """Return f(pharo_name)->'{ #kind. expr }' for a mappable async arg, else None."""
-    if mapped is None:
-        return None
-    if mapped.kind == "scalar":
-        return lambda n: f"{{ #int. {n} }}"
-    if mapped.kind == "boolean":
-        return lambda n: f"{{ #int. ({n} ifTrue: [ 1 ] ifFalse: [ 0 ]) }}"
-    if mapped.kind == "enum":
-        return lambda n: f"{{ #int. {n} value }}"
-    if mapped.kind == "string":
-        return lambda n: f"{{ #string. {n} }}"
-    if mapped.kind == "object":
-        return lambda n: (f"{{ #pointer. ({n} isNil ifTrue: [ ExternalAddress null ] "
-                          f"ifFalse: [ {n} getHandle ]) }}")
-    if mapped.kind == "bytes":
-        return lambda n: f"{{ #bytes. {n} }}"
-    if mapped.kind == "variant":
-        return lambda n: f"{{ #variant. {n} }}"
-    if mapped.kind == "vardict":
-        return lambda n: f"{{ #vardict. {n} }}"
-    return None
+def _async_begin_send(begin_base, begin_prim_params) -> str:
+    """The _begin send inside the onReady block: the cancellable and user_data
+    slots become NULL, onReady becomes the block argument, and the remaining
+    args pass through by their marshalled names."""
+    values = {"cancellable": "ExternalAddress null",
+              "onReady": "onReady",
+              "userData": "ExternalAddress null"}
+    first_name = begin_prim_params[0][0]
+    parts = [f"self {begin_base}: {values.get(first_name, first_name)}"]
+    for name, _ in begin_prim_params[1:]:
+        parts.append(f"{name}: {values.get(name, name)}")
+    return " ".join(parts)
 
 
 def _return_wrap_expr(mapped, transfer, value_expr: str) -> str:
