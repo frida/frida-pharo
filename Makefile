@@ -47,7 +47,9 @@ all: lib generate image test
 # tools/build-lib.sh). Requires DEVKIT=<extracted devkit dir>.
 lib: $(CORE_LIB)
 
-$(CORE_LIB):
+# The export list is scanned from the ffiCall sites, so a new C symbol in the
+# binding must relink the library; depend on the sources that drive the scan.
+$(CORE_LIB): $(wildcard $(REPO)/src/FridaPharo/*.st) $(wildcard $(REPO)/src/FridaPharo-Tests/*.st)
 	@test -n "$(DEVKIT)" || { echo "set DEVKIT=<extracted frida-core devkit dir>"; exit 1; }
 	bash tools/build-lib.sh $(DEVKIT) $@
 
