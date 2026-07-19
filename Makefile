@@ -37,6 +37,7 @@ LIBEXT          := so
 endif
 
 CORE_LIB        := $(REPO)/build/dylib/libfrida-core.$(LIBEXT)
+CORE_SYMBOLS    := $(REPO)/build/dylib/.ffi-symbols
 
 .PHONY: all lib generate image test clean
 
@@ -47,9 +48,15 @@ all: lib generate image test
 # tools/build-lib.sh). Requires DEVKIT=<extracted devkit dir>.
 lib: $(CORE_LIB)
 
-# The export list is scanned from the ffiCall sites, so a new C symbol in the
-# binding must relink the library; depend on the sources that drive the scan.
-$(CORE_LIB): $(wildcard $(REPO)/src/FridaPharo/*.st) $(wildcard $(REPO)/src/FridaPharo-Tests/*.st)
+# The export list is scanned from the ffiCall sites, so the library relinks only
+# when that import set changes -- tracked via a manifest rewritten only on change,
+# so regenerating the .st (same symbols) doesn't force a relink.
+$(CORE_SYMBOLS): $(wildcard $(REPO)/src/FridaPharo/*.st) $(wildcard $(REPO)/src/FridaPharo-Tests/*.st)
+	@mkdir -p $(dir $@)
+	@bash tools/build-lib.sh --symbols > $@.tmp
+	@cmp -s $@.tmp $@ 2>/dev/null && rm $@.tmp || mv $@.tmp $@
+
+$(CORE_LIB): $(CORE_SYMBOLS)
 	@test -n "$(DEVKIT)" || { echo "set DEVKIT=<extracted frida-core devkit dir>"; exit 1; }
 	bash tools/build-lib.sh $(DEVKIT) $@
 

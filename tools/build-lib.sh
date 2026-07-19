@@ -18,6 +18,24 @@
 # everything else.
 set -euo pipefail
 
+# Every ffiCall target plus the glibFunction:/symbolAvailable: string literals in
+# the vendored .st -- the ~430 frida_*/g_* the binding calls, hiding the thousands
+# of internal symbols. These are the roots the export limit and strip step keep.
+src="$(cd "$(dirname "$0")/.." && pwd)/src"
+scan_symbols() {
+  {
+    perl -ne 'while (/ffiCall:\s*#\(\s*\S+\s+(\w+)\s*\(/g) { print "$1\n" }' "$src"/FridaPharo/*.st
+    perl -ne "while (/(?:glibFunction|symbolAvailable):\s*'([A-Za-z_]\w*)'/g) { print \"\$1\\n\" }" \
+      "$src"/FridaPharo/*.st "$src"/FridaPharo-Tests/*.st
+  } | sort -u
+}
+
+# --symbols prints the import set (the Makefile gates relinking on its content).
+if [ "${1:-}" = "--symbols" ]; then
+  scan_symbols
+  exit 0
+fi
+
 DEVKIT=$1
 OUT=$2
 
@@ -75,17 +93,7 @@ while read -r sym; do
 done < <(nm "$archive" 2>/dev/null | awk '$2 == "T" && $3 ~ /^_frida_g_/ { print $3 }' | sort -u)
 
 # --- Limit dynamic exports to the uFFI import set -------------------------
-# Every ffiCall target plus the glibFunction:/symbolAvailable: string literals in
-# the vendored .st -- the ~430 frida_*/g_* the binding calls, hiding the thousands
-# of internal symbols. These are also the roots the strip step keeps reachable.
-src="$(cd "$(dirname "$0")/.." && pwd)/src"
-symbols=$(
-  {
-    perl -ne 'while (/ffiCall:\s*#\(\s*\S+\s+(\w+)\s*\(/g) { print "$1\n" }' "$src"/FridaPharo/*.st
-    perl -ne "while (/(?:glibFunction|symbolAvailable):\s*'([A-Za-z_]\w*)'/g) { print \"\$1\\n\" }" \
-      "$src"/FridaPharo/*.st "$src"/FridaPharo-Tests/*.st
-  } | sort -u
-)
+symbols=$(scan_symbols)
 
 mkdir -p "$(dirname "$OUT")"
 export_list="$OUT.exported-symbols"
