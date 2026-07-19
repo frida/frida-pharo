@@ -19,7 +19,7 @@ straight from GitHub:
 ```smalltalk
 Metacello new
 	baseline: 'FridaPharo';
-	repository: 'github://frida/frida-pharo:main/src';
+	repository: 'github://frida/frida-pharo:main';
 	load.
 ```
 
