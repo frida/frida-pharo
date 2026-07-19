@@ -70,3 +70,8 @@ FridaChild >> printOn: aStream [
 	aStream nextPutAll: ')'
 ]
 
+{ #category : 'generated' }
+FridaChild class >> identityProperties [
+	^ #(pid identifier)
+]
+

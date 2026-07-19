@@ -528,6 +528,11 @@ FridaDevice >> printOn: aStream [
 	aStream nextPutAll: ')'
 ]
 
+{ #category : 'generated' }
+FridaDevice class >> identityProperties [
+	^ #(id name)
+]
+
 { #category : 'facade' }
 FridaDevice >> spawn: program [
 	^ self spawn: program options: nil

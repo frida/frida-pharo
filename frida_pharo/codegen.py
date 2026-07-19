@@ -220,6 +220,10 @@ def _emit_object_type(obj, model) -> str:
     if print_section is not None:
         sections.append(print_section)
 
+    identity_section = _emit_identity_properties(obj, model)
+    if identity_section is not None:
+        sections.append(identity_section)
+
     sections.extend(_facade_sections(model, obj.pharo_name))
 
     return _class_file(
@@ -253,6 +257,19 @@ def _emit_print_on(obj, model) -> Optional[str]:
     # Smalltalk statements are period-separated; the last carries none.
     lines = [s + "." for s in statements[:-1]] + [statements[-1]]
     return _method(f"{obj.pharo_name} >> printOn: aStream", GENERATED_TAG, lines)
+
+
+def _emit_identity_properties(obj, model) -> Optional[str]:
+    """Emit a class-side #identityProperties (the print spec's selectors) so the
+    moldable inspector can column a list and tabulate an element generically,
+    from the same customizations.print_specs that drive printOn:."""
+    spec = next((s for s in model.customizations.print_specs
+                 if s.target == obj.pharo_name), None)
+    if spec is None:
+        return None
+    literal = "#(" + " ".join(spec.properties) + ")"
+    return _method(f"{obj.pharo_name} class >> identityProperties", GENERATED_TAG,
+                   [f"^ {literal}"])
 
 
 def _emit_list_protocol(obj) -> List[str]:

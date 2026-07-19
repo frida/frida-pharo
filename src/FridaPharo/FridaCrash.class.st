@@ -49,3 +49,8 @@ FridaCrash >> printOn: aStream [
 	aStream nextPutAll: ')'
 ]
 
+{ #category : 'generated' }
+FridaCrash class >> identityProperties [
+	^ #(pid processName)
+]
+

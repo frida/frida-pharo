@@ -251,13 +251,44 @@ FridaObject >> connectSignal: aSignalName callback: aCallback [
 ]
 
 { #category : 'inspecting' }
+FridaObject class >> identityProperties [
+	"Selectors of the identifying properties; overridden by generated types that
+	 have a print spec. Drives the moldable inspector's columns/rows."
+	^ #()
+]
+
+{ #category : 'inspecting' }
 FridaObject >> gtItemsFor: aView [
 	<gtView>
+	| items list props |
 	self isCollection ifFalse: [ ^ aView empty ].
-	^ aView list
-		title: 'Items';
-		priority: 40;
-		items: [ self asArray ]
+	items := self asArray.
+	list := aView columnedList.
+	list title: 'Items'; priority: 40; items: [ items ].
+	props := items isEmpty ifTrue: [ #() ] ifFalse: [ items first class identityProperties ].
+	props isEmpty
+		ifTrue: [ list column: 'Item' text: [ :each | each printString ] ]
+		ifFalse: [ props do: [ :p | list column: p asString text: [ :each | each displayValueOf: p ] ] ].
+	^ list
+]
+
+{ #category : 'inspecting' }
+FridaObject >> gtPropertiesFor: aView [
+	<gtView>
+	| props |
+	props := self class identityProperties.
+	props isEmpty ifTrue: [ ^ aView empty ].
+	^ aView columnedList
+		title: 'Properties';
+		priority: 30;
+		items: [ props ];
+		column: 'Property' text: [ :p | p asString ];
+		column: 'Value' text: [ :p | self displayValueOf: p ]
+]
+
+{ #category : 'inspecting' }
+FridaObject >> displayValueOf: aSelector [
+	^ [ (self perform: aSelector) displayString ] on: Error do: [ :e | '?' ]
 ]
 
 { #category : 'finalization' }

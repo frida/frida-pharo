@@ -216,6 +216,11 @@ FridaSession >> printOn: aStream [
 	aStream nextPutAll: ')'
 ]
 
+{ #category : 'generated' }
+FridaSession class >> identityProperties [
+	^ #(pid)
+]
+
 { #category : 'facade' }
 FridaSession >> createScript: source [
 	^ self createScript: source options: nil

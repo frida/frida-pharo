@@ -27,3 +27,8 @@ FridaSpawn >> printOn: aStream [
 	aStream nextPutAll: ')'
 ]
 
+{ #category : 'generated' }
+FridaSpawn class >> identityProperties [
+	^ #(pid identifier)
+]
+
