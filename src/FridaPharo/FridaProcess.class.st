@@ -1,33 +1,81 @@
 "
-GENERATED binding for the Frida FridaProcess GObject.
+GENERATED plain value snapshot of the Frida FridaProcess.
 "
 Class {
 	#name : 'FridaProcess',
-	#superclass : 'FridaObject',
+	#superclass : 'Object',
+	#instVars : [ 'pid', 'name', 'parameters' ],
 	#category : 'FridaPharo',
 	#package : 'FridaPharo'
 }
 
 { #category : 'generated' }
 FridaProcess >> pid [
-	^ self ffiCall: #(uint frida_process_get_pid (self)) library: FridaLibrary
+	^ pid
+]
+
+{ #category : 'generated' }
+FridaProcess >> setPid: aValue [
+	pid := aValue
 ]
 
 { #category : 'generated' }
 FridaProcess >> name [
-	^ self ffiCall: #(String frida_process_get_name (self)) library: FridaLibrary
+	^ name
 ]
 
 { #category : 'generated' }
-FridaProcess >> parametersRaw [
-	^ self ffiCall: #(void* frida_process_get_parameters (self)) library: FridaLibrary
+FridaProcess >> setName: aValue [
+	name := aValue
 ]
 
 { #category : 'generated' }
 FridaProcess >> parameters [
+	^ parameters
+]
+
+{ #category : 'generated' }
+FridaProcess >> setParameters: aValue [
+	parameters := aValue
+]
+
+{ #category : 'generated' }
+FridaProcess class >> readPid: aHandle [
+	^ self ffiCall: #(uint frida_process_get_pid (void* aHandle)) library: FridaLibrary
+]
+
+{ #category : 'generated' }
+FridaProcess class >> readName: aHandle [
+	^ self ffiCall: #(String frida_process_get_name (void* aHandle)) library: FridaLibrary
+]
+
+{ #category : 'generated' }
+FridaProcess class >> readParametersRaw: aHandle [
+	^ self ffiCall: #(void* frida_process_get_parameters (void* aHandle)) library: FridaLibrary
+]
+
+{ #category : 'generated' }
+FridaProcess class >> readParameters: aHandle [
 	| result |
-	result := self parametersRaw.
-	^ self dictFromVardict: (result) owned: false
+	result := self readParametersRaw: aHandle.
+	^ FridaObject dictFromVardict: (result) owned: false
+]
+
+{ #category : 'generated' }
+FridaProcess class >> fromHandle: aHandle owned: isOwned [
+	| instance |
+	(aHandle isNil or: [ aHandle isNull ]) ifTrue: [ ^ nil ].
+	instance := self new.
+	instance setPid: (self readPid: aHandle).
+	instance setName: (self readName: aHandle).
+	instance setParameters: (self readParameters: aHandle).
+	isOwned ifTrue: [ FridaObject unref: aHandle ].
+	^ instance
+]
+
+{ #category : 'generated' }
+FridaProcess class >> fromHandle: aHandle [
+	^ self fromHandle: aHandle owned: true
 ]
 
 { #category : 'generated' }

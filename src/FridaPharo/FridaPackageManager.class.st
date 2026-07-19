@@ -40,7 +40,7 @@ FridaPackageManager >> search: query options: options [
 	| marshalled0 raw |
 	marshalled0 := options isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options getHandle ].
 	raw := self asyncCall: [ :onReady | self searchBegin: query marshalled0: marshalled0 cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self searchFinish: asyncResult errorHolder: errorHolder ].
-	^ FridaPackageSearchResult fromOwnedHandle: (raw)
+	^ FridaPackageSearchResult fromHandle: (raw) owned: true
 ]
 
 { #category : 'generated' }
@@ -58,7 +58,7 @@ FridaPackageManager >> install: options [
 	| marshalled0 raw |
 	marshalled0 := options isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options getHandle ].
 	raw := self asyncCall: [ :onReady | self installBegin: marshalled0 cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self installFinish: asyncResult errorHolder: errorHolder ].
-	^ FridaPackageInstallResult fromOwnedHandle: (raw)
+	^ FridaPackageInstallResult fromHandle: (raw) owned: true
 ]
 
 { #category : 'generated' }

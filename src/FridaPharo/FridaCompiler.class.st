@@ -79,7 +79,7 @@ FridaCompiler >> onOutput: aBlock [
 { #category : 'generated' }
 FridaCompiler >> onDiagnostics: aBlock [
 	| callback |
-	callback := FFICallback signature: #(void (void* instance, void* diagnostics, void* userData)) block: [ :instance :diagnostics :userData | aBlock valueWithArguments: { self valueFromVariant: diagnostics owned: false } ].
+	callback := FFICallback signature: #(void (void* instance, void* diagnostics, void* userData)) block: [ :instance :diagnostics :userData | aBlock valueWithArguments: { FridaObject valueFromVariant: diagnostics owned: false } ].
 	^ self connectSignal: 'diagnostics' callback: callback
 ]
 

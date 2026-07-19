@@ -175,7 +175,7 @@ FridaObject >> strvFromArray: anArrayOrNil [
 ]
 
 { #category : 'marshalling' }
-FridaObject >> valueFromVariant: aVariantHandle owned: isOwned [
+FridaObject class >> valueFromVariant: aVariantHandle owned: isOwned [
 	"GVariant* -> Pharo value; unref when we own the reference."
 	| value |
 	(aVariantHandle isNil or: [ aVariantHandle isNull ]) ifTrue: [ ^ nil ].
@@ -185,7 +185,7 @@ FridaObject >> valueFromVariant: aVariantHandle owned: isOwned [
 ]
 
 { #category : 'marshalling' }
-FridaObject >> dictFromVardict: aTableHandle owned: isOwned [
+FridaObject class >> dictFromVardict: aTableHandle owned: isOwned [
 	"GHashTable<utf8,GVariant>* -> Dictionary; unref when we own the reference."
 	| value |
 	(aTableHandle isNil or: [ aTableHandle isNull ]) ifTrue: [ ^ nil ].
@@ -205,7 +205,7 @@ FridaObject >> stringFromCharPointer: aHandle owned: isOwned [
 ]
 
 { #category : 'marshalling' }
-FridaObject >> byteArrayFromBytes: aBytesHandle owned: isOwned [
+FridaObject class >> byteArrayFromBytes: aBytesHandle owned: isOwned [
 	"GBytes* -> ByteArray (copies). Unrefs only when we own the reference."
 	| size bytes |
 	(aBytesHandle isNil or: [ aBytesHandle isNull ]) ifTrue: [ ^ nil ].
@@ -217,7 +217,7 @@ FridaObject >> byteArrayFromBytes: aBytesHandle owned: isOwned [
 ]
 
 { #category : 'marshalling' }
-FridaObject >> arrayFromStrv: aStrvHandle owned: isOwned [
+FridaObject class >> arrayFromStrv: aStrvHandle owned: isOwned [
 	"gchar** -> Array of String (copies). g_strfreev only when we own it; a
 	 container-owned strv (transfer none) must not be freed."
 	| length result |

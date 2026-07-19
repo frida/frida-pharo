@@ -1,30 +1,89 @@
 "
-GENERATED binding for the Frida FridaPackage GObject.
+GENERATED plain value snapshot of the Frida FridaPackage.
 "
 Class {
 	#name : 'FridaPackage',
-	#superclass : 'FridaObject',
+	#superclass : 'Object',
+	#instVars : [ 'name', 'version', 'description', 'url' ],
 	#category : 'FridaPharo',
 	#package : 'FridaPharo'
 }
 
 { #category : 'generated' }
 FridaPackage >> name [
-	^ self ffiCall: #(String frida_package_get_name (self)) library: FridaLibrary
+	^ name
+]
+
+{ #category : 'generated' }
+FridaPackage >> setName: aValue [
+	name := aValue
 ]
 
 { #category : 'generated' }
 FridaPackage >> version [
-	^ self ffiCall: #(String frida_package_get_version (self)) library: FridaLibrary
+	^ version
+]
+
+{ #category : 'generated' }
+FridaPackage >> setVersion: aValue [
+	version := aValue
 ]
 
 { #category : 'generated' }
 FridaPackage >> description [
-	^ self ffiCall: #(String frida_package_get_description (self)) library: FridaLibrary
+	^ description
+]
+
+{ #category : 'generated' }
+FridaPackage >> setDescription: aValue [
+	description := aValue
 ]
 
 { #category : 'generated' }
 FridaPackage >> url [
-	^ self ffiCall: #(String frida_package_get_url (self)) library: FridaLibrary
+	^ url
+]
+
+{ #category : 'generated' }
+FridaPackage >> setUrl: aValue [
+	url := aValue
+]
+
+{ #category : 'generated' }
+FridaPackage class >> readName: aHandle [
+	^ self ffiCall: #(String frida_package_get_name (void* aHandle)) library: FridaLibrary
+]
+
+{ #category : 'generated' }
+FridaPackage class >> readVersion: aHandle [
+	^ self ffiCall: #(String frida_package_get_version (void* aHandle)) library: FridaLibrary
+]
+
+{ #category : 'generated' }
+FridaPackage class >> readDescription: aHandle [
+	^ self ffiCall: #(String frida_package_get_description (void* aHandle)) library: FridaLibrary
+]
+
+{ #category : 'generated' }
+FridaPackage class >> readUrl: aHandle [
+	^ self ffiCall: #(String frida_package_get_url (void* aHandle)) library: FridaLibrary
+]
+
+{ #category : 'generated' }
+FridaPackage class >> fromHandle: aHandle owned: isOwned [
+	| instance |
+	(aHandle isNil or: [ aHandle isNull ]) ifTrue: [ ^ nil ].
+	instance := self new.
+	instance setName: (self readName: aHandle).
+	instance setVersion: (self readVersion: aHandle).
+	instance setDescription: (self readDescription: aHandle).
+	instance setUrl: (self readUrl: aHandle).
+	isOwned ifTrue: [ FridaObject unref: aHandle ].
+	^ instance
+]
+
+{ #category : 'generated' }
+FridaPackage class >> fromHandle: aHandle [
+	^ self fromHandle: aHandle owned: true
 ]
 

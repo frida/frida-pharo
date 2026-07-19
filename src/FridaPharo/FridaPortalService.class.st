@@ -177,14 +177,14 @@ FridaPortalService >> untag: connectionId tag: tag [
 { #category : 'generated' }
 FridaPortalService >> onNodeJoined: aBlock [
 	| callback |
-	callback := FFICallback signature: #(void (void* instance, uint connectionId, void* application, void* userData)) block: [ :instance :connectionId :application :userData | aBlock valueWithArguments: { connectionId . FridaObject wrapBorrowed: application } ].
+	callback := FFICallback signature: #(void (void* instance, uint connectionId, void* application, void* userData)) block: [ :instance :connectionId :application :userData | aBlock valueWithArguments: { connectionId . FridaApplication fromHandle: application owned: false } ].
 	^ self connectSignal: 'node-joined' callback: callback
 ]
 
 { #category : 'generated' }
 FridaPortalService >> onNodeLeft: aBlock [
 	| callback |
-	callback := FFICallback signature: #(void (void* instance, uint connectionId, void* application, void* userData)) block: [ :instance :connectionId :application :userData | aBlock valueWithArguments: { connectionId . FridaObject wrapBorrowed: application } ].
+	callback := FFICallback signature: #(void (void* instance, uint connectionId, void* application, void* userData)) block: [ :instance :connectionId :application :userData | aBlock valueWithArguments: { connectionId . FridaApplication fromHandle: application owned: false } ].
 	^ self connectSignal: 'node-left' callback: callback
 ]
 
@@ -205,7 +205,7 @@ FridaPortalService >> onSubscribe: aBlock [
 { #category : 'generated' }
 FridaPortalService >> onMessage: aBlock [
 	| callback |
-	callback := FFICallback signature: #(void (void* instance, uint connectionId, String json, void* data, void* userData)) block: [ :instance :connectionId :json :data :userData | aBlock valueWithArguments: { connectionId . json . self byteArrayFromBytes: data owned: false } ].
+	callback := FFICallback signature: #(void (void* instance, uint connectionId, String json, void* data, void* userData)) block: [ :instance :connectionId :json :data :userData | aBlock valueWithArguments: { connectionId . json . FridaObject byteArrayFromBytes: data owned: false } ].
 	^ self connectSignal: 'message' callback: callback
 ]
 

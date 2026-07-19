@@ -22,7 +22,7 @@ FridaApplicationList >> getRaw: index [
 FridaApplicationList >> get: index [
 	| result |
 	result := self getRaw: index.
-	^ FridaApplication fromOwnedHandle: (result)
+	^ FridaApplication fromHandle: (result) owned: true
 ]
 
 { #category : 'generated' }

@@ -1,22 +1,48 @@
 "
-GENERATED binding for the Frida FridaPackageInstallResult GObject.
+GENERATED plain value snapshot of the Frida FridaPackageInstallResult.
 "
 Class {
 	#name : 'FridaPackageInstallResult',
-	#superclass : 'FridaObject',
+	#superclass : 'Object',
+	#instVars : [ 'packages' ],
 	#category : 'FridaPharo',
 	#package : 'FridaPharo'
 }
 
 { #category : 'generated' }
-FridaPackageInstallResult >> packagesRaw [
-	^ self ffiCall: #(void* frida_package_install_result_get_packages (self)) library: FridaLibrary
+FridaPackageInstallResult >> packages [
+	^ packages
 ]
 
 { #category : 'generated' }
-FridaPackageInstallResult >> packages [
+FridaPackageInstallResult >> setPackages: aValue [
+	packages := aValue
+]
+
+{ #category : 'generated' }
+FridaPackageInstallResult class >> readPackagesRaw: aHandle [
+	^ self ffiCall: #(void* frida_package_install_result_get_packages (void* aHandle)) library: FridaLibrary
+]
+
+{ #category : 'generated' }
+FridaPackageInstallResult class >> readPackages: aHandle [
 	| result |
-	result := self packagesRaw.
+	result := self readPackagesRaw: aHandle.
 	^ (FridaPackageList fromBorrowedHandle: (result)) asArray
+]
+
+{ #category : 'generated' }
+FridaPackageInstallResult class >> fromHandle: aHandle owned: isOwned [
+	| instance |
+	(aHandle isNil or: [ aHandle isNull ]) ifTrue: [ ^ nil ].
+	instance := self new.
+	instance setPackages: (self readPackages: aHandle).
+	isOwned ifTrue: [ FridaObject unref: aHandle ].
+	^ instance
+]
+
+{ #category : 'generated' }
+FridaPackageInstallResult class >> fromHandle: aHandle [
+	^ self fromHandle: aHandle owned: true
 ]
 

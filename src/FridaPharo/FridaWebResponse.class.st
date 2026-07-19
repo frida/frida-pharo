@@ -33,7 +33,7 @@ FridaWebResponse >> bodyRaw [
 FridaWebResponse >> body [
 	| result |
 	result := self bodyRaw.
-	^ self byteArrayFromBytes: (result) owned: false
+	^ FridaObject byteArrayFromBytes: (result) owned: false
 ]
 
 { #category : 'generated' }

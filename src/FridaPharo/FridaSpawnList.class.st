@@ -22,7 +22,7 @@ FridaSpawnList >> getRaw: index [
 FridaSpawnList >> get: index [
 	| result |
 	result := self getRaw: index.
-	^ FridaSpawn fromOwnedHandle: (result)
+	^ FridaSpawn fromHandle: (result) owned: true
 ]
 
 { #category : 'generated' }

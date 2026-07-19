@@ -30,7 +30,7 @@ FridaSpawnOptions >> argv [
 	lengthHolder := ExternalAddress allocate: 4.
 	result := self argvRaw: lengthHolder.
 	lengthHolder free.
-	^ self arrayFromStrv: (result) owned: false
+	^ FridaObject arrayFromStrv: (result) owned: false
 ]
 
 { #category : 'generated' }
@@ -44,7 +44,7 @@ FridaSpawnOptions >> envp [
 	lengthHolder := ExternalAddress allocate: 4.
 	result := self envpRaw: lengthHolder.
 	lengthHolder free.
-	^ self arrayFromStrv: (result) owned: false
+	^ FridaObject arrayFromStrv: (result) owned: false
 ]
 
 { #category : 'generated' }
@@ -58,7 +58,7 @@ FridaSpawnOptions >> env [
 	lengthHolder := ExternalAddress allocate: 4.
 	result := self envRaw: lengthHolder.
 	lengthHolder free.
-	^ self arrayFromStrv: (result) owned: false
+	^ FridaObject arrayFromStrv: (result) owned: false
 ]
 
 { #category : 'generated' }
@@ -80,7 +80,7 @@ FridaSpawnOptions >> auxRaw [
 FridaSpawnOptions >> aux [
 	| result |
 	result := self auxRaw.
-	^ self dictFromVardict: (result) owned: false
+	^ FridaObject dictFromVardict: (result) owned: false
 ]
 
 { #category : 'generated' }

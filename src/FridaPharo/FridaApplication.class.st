@@ -1,38 +1,97 @@
 "
-GENERATED binding for the Frida FridaApplication GObject.
+GENERATED plain value snapshot of the Frida FridaApplication.
 "
 Class {
 	#name : 'FridaApplication',
-	#superclass : 'FridaObject',
+	#superclass : 'Object',
+	#instVars : [ 'identifier', 'name', 'pid', 'parameters' ],
 	#category : 'FridaPharo',
 	#package : 'FridaPharo'
 }
 
 { #category : 'generated' }
 FridaApplication >> identifier [
-	^ self ffiCall: #(String frida_application_get_identifier (self)) library: FridaLibrary
+	^ identifier
+]
+
+{ #category : 'generated' }
+FridaApplication >> setIdentifier: aValue [
+	identifier := aValue
 ]
 
 { #category : 'generated' }
 FridaApplication >> name [
-	^ self ffiCall: #(String frida_application_get_name (self)) library: FridaLibrary
+	^ name
+]
+
+{ #category : 'generated' }
+FridaApplication >> setName: aValue [
+	name := aValue
 ]
 
 { #category : 'generated' }
 FridaApplication >> pid [
-	^ self ffiCall: #(uint frida_application_get_pid (self)) library: FridaLibrary
+	^ pid
 ]
 
 { #category : 'generated' }
-FridaApplication >> parametersRaw [
-	^ self ffiCall: #(void* frida_application_get_parameters (self)) library: FridaLibrary
+FridaApplication >> setPid: aValue [
+	pid := aValue
 ]
 
 { #category : 'generated' }
 FridaApplication >> parameters [
+	^ parameters
+]
+
+{ #category : 'generated' }
+FridaApplication >> setParameters: aValue [
+	parameters := aValue
+]
+
+{ #category : 'generated' }
+FridaApplication class >> readIdentifier: aHandle [
+	^ self ffiCall: #(String frida_application_get_identifier (void* aHandle)) library: FridaLibrary
+]
+
+{ #category : 'generated' }
+FridaApplication class >> readName: aHandle [
+	^ self ffiCall: #(String frida_application_get_name (void* aHandle)) library: FridaLibrary
+]
+
+{ #category : 'generated' }
+FridaApplication class >> readPid: aHandle [
+	^ self ffiCall: #(uint frida_application_get_pid (void* aHandle)) library: FridaLibrary
+]
+
+{ #category : 'generated' }
+FridaApplication class >> readParametersRaw: aHandle [
+	^ self ffiCall: #(void* frida_application_get_parameters (void* aHandle)) library: FridaLibrary
+]
+
+{ #category : 'generated' }
+FridaApplication class >> readParameters: aHandle [
 	| result |
-	result := self parametersRaw.
-	^ self dictFromVardict: (result) owned: false
+	result := self readParametersRaw: aHandle.
+	^ FridaObject dictFromVardict: (result) owned: false
+]
+
+{ #category : 'generated' }
+FridaApplication class >> fromHandle: aHandle owned: isOwned [
+	| instance |
+	(aHandle isNil or: [ aHandle isNull ]) ifTrue: [ ^ nil ].
+	instance := self new.
+	instance setIdentifier: (self readIdentifier: aHandle).
+	instance setName: (self readName: aHandle).
+	instance setPid: (self readPid: aHandle).
+	instance setParameters: (self readParameters: aHandle).
+	isOwned ifTrue: [ FridaObject unref: aHandle ].
+	^ instance
+]
+
+{ #category : 'generated' }
+FridaApplication class >> fromHandle: aHandle [
+	^ self fromHandle: aHandle owned: true
 ]
 
 { #category : 'generated' }

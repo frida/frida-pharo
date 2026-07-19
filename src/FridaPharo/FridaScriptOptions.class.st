@@ -33,7 +33,7 @@ FridaScriptOptions >> snapshotRaw [
 FridaScriptOptions >> snapshot [
 	| result |
 	result := self snapshotRaw.
-	^ self byteArrayFromBytes: (result) owned: false
+	^ FridaObject byteArrayFromBytes: (result) owned: false
 ]
 
 { #category : 'generated' }

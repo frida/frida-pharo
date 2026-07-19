@@ -22,7 +22,7 @@ FridaPackageList >> getRaw: index [
 FridaPackageList >> get: index [
 	| result |
 	result := self getRaw: index.
-	^ FridaPackage fromOwnedHandle: (result)
+	^ FridaPackage fromHandle: (result) owned: true
 ]
 
 { #category : 'generated' }

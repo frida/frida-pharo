@@ -53,7 +53,7 @@ FridaService >> request: parameters [
 	marshalled0 := FridaVariant encode: parameters.
 	raw := self asyncCall: [ :onReady | self requestBegin: marshalled0 cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self requestFinish: asyncResult errorHolder: errorHolder ].
 	FridaGlue variantUnref: marshalled0.
-	^ self valueFromVariant: (raw) owned: true
+	^ FridaObject valueFromVariant: (raw) owned: true
 ]
 
 { #category : 'generated' }
@@ -76,7 +76,7 @@ FridaService >> onClose: aBlock [
 { #category : 'generated' }
 FridaService >> onMessage: aBlock [
 	| callback |
-	callback := FFICallback signature: #(void (void* instance, void* message, void* userData)) block: [ :instance :message :userData | aBlock valueWithArguments: { self valueFromVariant: message owned: false } ].
+	callback := FFICallback signature: #(void (void* instance, void* message, void* userData)) block: [ :instance :message :userData | aBlock valueWithArguments: { FridaObject valueFromVariant: message owned: false } ].
 	^ self connectSignal: 'message' callback: callback
 ]
 

@@ -1,21 +1,58 @@
 "
-GENERATED binding for the Frida FridaSpawn GObject.
+GENERATED plain value snapshot of the Frida FridaSpawn.
 "
 Class {
 	#name : 'FridaSpawn',
-	#superclass : 'FridaObject',
+	#superclass : 'Object',
+	#instVars : [ 'pid', 'identifier' ],
 	#category : 'FridaPharo',
 	#package : 'FridaPharo'
 }
 
 { #category : 'generated' }
 FridaSpawn >> pid [
-	^ self ffiCall: #(uint frida_spawn_get_pid (self)) library: FridaLibrary
+	^ pid
+]
+
+{ #category : 'generated' }
+FridaSpawn >> setPid: aValue [
+	pid := aValue
 ]
 
 { #category : 'generated' }
 FridaSpawn >> identifier [
-	^ self ffiCall: #(String frida_spawn_get_identifier (self)) library: FridaLibrary
+	^ identifier
+]
+
+{ #category : 'generated' }
+FridaSpawn >> setIdentifier: aValue [
+	identifier := aValue
+]
+
+{ #category : 'generated' }
+FridaSpawn class >> readPid: aHandle [
+	^ self ffiCall: #(uint frida_spawn_get_pid (void* aHandle)) library: FridaLibrary
+]
+
+{ #category : 'generated' }
+FridaSpawn class >> readIdentifier: aHandle [
+	^ self ffiCall: #(String frida_spawn_get_identifier (void* aHandle)) library: FridaLibrary
+]
+
+{ #category : 'generated' }
+FridaSpawn class >> fromHandle: aHandle owned: isOwned [
+	| instance |
+	(aHandle isNil or: [ aHandle isNull ]) ifTrue: [ ^ nil ].
+	instance := self new.
+	instance setPid: (self readPid: aHandle).
+	instance setIdentifier: (self readIdentifier: aHandle).
+	isOwned ifTrue: [ FridaObject unref: aHandle ].
+	^ instance
+]
+
+{ #category : 'generated' }
+FridaSpawn class >> fromHandle: aHandle [
+	^ self fromHandle: aHandle owned: true
 ]
 
 { #category : 'generated' }

@@ -134,7 +134,7 @@ FridaSession >> compileScript: source options: options [
 	| marshalled0 raw |
 	marshalled0 := options isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options getHandle ].
 	raw := self asyncCall: [ :onReady | self compileScriptBegin: source marshalled0: marshalled0 cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self compileScriptFinish: asyncResult errorHolder: errorHolder ].
-	^ self byteArrayFromBytes: (raw) owned: true
+	^ FridaObject byteArrayFromBytes: (raw) owned: true
 ]
 
 { #category : 'generated' }
@@ -152,7 +152,7 @@ FridaSession >> snapshotScript: embedScript options: options [
 	| marshalled0 raw |
 	marshalled0 := options isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options getHandle ].
 	raw := self asyncCall: [ :onReady | self snapshotScriptBegin: embedScript marshalled0: marshalled0 cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self snapshotScriptFinish: asyncResult errorHolder: errorHolder ].
-	^ self byteArrayFromBytes: (raw) owned: true
+	^ FridaObject byteArrayFromBytes: (raw) owned: true
 ]
 
 { #category : 'generated' }
@@ -204,7 +204,7 @@ FridaSession >> joinPortalFinish: asyncResult errorHolder: errorHolder [
 { #category : 'generated' }
 FridaSession >> onDetached: aBlock [
 	| callback |
-	callback := FFICallback signature: #(void (void* instance, FridaSessionDetachReason reason, void* crash, void* userData)) block: [ :instance :reason :crash :userData | aBlock valueWithArguments: { reason . FridaObject wrapBorrowed: crash } ].
+	callback := FFICallback signature: #(void (void* instance, FridaSessionDetachReason reason, void* crash, void* userData)) block: [ :instance :reason :crash :userData | aBlock valueWithArguments: { reason . FridaCrash fromHandle: crash owned: false } ].
 	^ self connectSignal: 'detached' callback: callback
 ]
 

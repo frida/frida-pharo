@@ -1,64 +1,156 @@
 "
-GENERATED binding for the Frida FridaChild GObject.
+GENERATED plain value snapshot of the Frida FridaChild.
 "
 Class {
 	#name : 'FridaChild',
-	#superclass : 'FridaObject',
+	#superclass : 'Object',
+	#instVars : [ 'pid', 'parentPid', 'origin', 'identifier', 'path', 'argv', 'envp' ],
 	#category : 'FridaPharo',
 	#package : 'FridaPharo'
 }
 
 { #category : 'generated' }
 FridaChild >> pid [
-	^ self ffiCall: #(uint frida_child_get_pid (self)) library: FridaLibrary
+	^ pid
+]
+
+{ #category : 'generated' }
+FridaChild >> setPid: aValue [
+	pid := aValue
 ]
 
 { #category : 'generated' }
 FridaChild >> parentPid [
-	^ self ffiCall: #(uint frida_child_get_parent_pid (self)) library: FridaLibrary
+	^ parentPid
+]
+
+{ #category : 'generated' }
+FridaChild >> setParentPid: aValue [
+	parentPid := aValue
 ]
 
 { #category : 'generated' }
 FridaChild >> origin [
-	^ self ffiCall: #(FridaChildOrigin frida_child_get_origin (self)) library: FridaLibrary
+	^ origin
+]
+
+{ #category : 'generated' }
+FridaChild >> setOrigin: aValue [
+	origin := aValue
 ]
 
 { #category : 'generated' }
 FridaChild >> identifier [
-	^ self ffiCall: #(String frida_child_get_identifier (self)) library: FridaLibrary
+	^ identifier
+]
+
+{ #category : 'generated' }
+FridaChild >> setIdentifier: aValue [
+	identifier := aValue
 ]
 
 { #category : 'generated' }
 FridaChild >> path [
-	^ self ffiCall: #(String frida_child_get_path (self)) library: FridaLibrary
+	^ path
 ]
 
 { #category : 'generated' }
-FridaChild >> argvRaw: lengthHolder [
-	^ self ffiCall: #(void* frida_child_get_argv (self, void* lengthHolder)) library: FridaLibrary
+FridaChild >> setPath: aValue [
+	path := aValue
 ]
 
 { #category : 'generated' }
 FridaChild >> argv [
-	| lengthHolder result |
-	lengthHolder := ExternalAddress allocate: 4.
-	result := self argvRaw: lengthHolder.
-	lengthHolder free.
-	^ self arrayFromStrv: (result) owned: false
+	^ argv
 ]
 
 { #category : 'generated' }
-FridaChild >> envpRaw: lengthHolder [
-	^ self ffiCall: #(void* frida_child_get_envp (self, void* lengthHolder)) library: FridaLibrary
+FridaChild >> setArgv: aValue [
+	argv := aValue
 ]
 
 { #category : 'generated' }
 FridaChild >> envp [
+	^ envp
+]
+
+{ #category : 'generated' }
+FridaChild >> setEnvp: aValue [
+	envp := aValue
+]
+
+{ #category : 'generated' }
+FridaChild class >> readPid: aHandle [
+	^ self ffiCall: #(uint frida_child_get_pid (void* aHandle)) library: FridaLibrary
+]
+
+{ #category : 'generated' }
+FridaChild class >> readParentPid: aHandle [
+	^ self ffiCall: #(uint frida_child_get_parent_pid (void* aHandle)) library: FridaLibrary
+]
+
+{ #category : 'generated' }
+FridaChild class >> readOrigin: aHandle [
+	^ self ffiCall: #(FridaChildOrigin frida_child_get_origin (void* aHandle)) library: FridaLibrary
+]
+
+{ #category : 'generated' }
+FridaChild class >> readIdentifier: aHandle [
+	^ self ffiCall: #(String frida_child_get_identifier (void* aHandle)) library: FridaLibrary
+]
+
+{ #category : 'generated' }
+FridaChild class >> readPath: aHandle [
+	^ self ffiCall: #(String frida_child_get_path (void* aHandle)) library: FridaLibrary
+]
+
+{ #category : 'generated' }
+FridaChild class >> readArgvRaw: aHandle lengthHolder: lengthHolder [
+	^ self ffiCall: #(void* frida_child_get_argv (void* aHandle, void* lengthHolder)) library: FridaLibrary
+]
+
+{ #category : 'generated' }
+FridaChild class >> readArgv: aHandle [
 	| lengthHolder result |
 	lengthHolder := ExternalAddress allocate: 4.
-	result := self envpRaw: lengthHolder.
+	result := self readArgvRaw: aHandle lengthHolder: lengthHolder.
 	lengthHolder free.
-	^ self arrayFromStrv: (result) owned: false
+	^ FridaObject arrayFromStrv: (result) owned: false
+]
+
+{ #category : 'generated' }
+FridaChild class >> readEnvpRaw: aHandle lengthHolder: lengthHolder [
+	^ self ffiCall: #(void* frida_child_get_envp (void* aHandle, void* lengthHolder)) library: FridaLibrary
+]
+
+{ #category : 'generated' }
+FridaChild class >> readEnvp: aHandle [
+	| lengthHolder result |
+	lengthHolder := ExternalAddress allocate: 4.
+	result := self readEnvpRaw: aHandle lengthHolder: lengthHolder.
+	lengthHolder free.
+	^ FridaObject arrayFromStrv: (result) owned: false
+]
+
+{ #category : 'generated' }
+FridaChild class >> fromHandle: aHandle owned: isOwned [
+	| instance |
+	(aHandle isNil or: [ aHandle isNull ]) ifTrue: [ ^ nil ].
+	instance := self new.
+	instance setPid: (self readPid: aHandle).
+	instance setParentPid: (self readParentPid: aHandle).
+	instance setOrigin: (self readOrigin: aHandle).
+	instance setIdentifier: (self readIdentifier: aHandle).
+	instance setPath: (self readPath: aHandle).
+	instance setArgv: (self readArgv: aHandle).
+	instance setEnvp: (self readEnvp: aHandle).
+	isOwned ifTrue: [ FridaObject unref: aHandle ].
+	^ instance
+]
+
+{ #category : 'generated' }
+FridaChild class >> fromHandle: aHandle [
+	^ self fromHandle: aHandle owned: true
 ]
 
 { #category : 'generated' }

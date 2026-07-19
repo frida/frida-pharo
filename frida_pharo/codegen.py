@@ -41,11 +41,30 @@ class Mapped:
     """A GIR type resolved to how Pharo should marshal it."""
 
     def __init__(self, kind: str, token: str, pharo_class: Optional[str] = None,
-                 is_list: bool = False):
+                 is_list: bool = False, is_pod: bool = False):
         self.kind = kind  # scalar | string | object | enum | void
         self.token = token
         self.pharo_class = pharo_class
         self.is_list = is_list
+        self.is_pod = is_pod
+
+
+def _pascal(camel: str) -> str:
+    return camel[:1].upper() + camel[1:]
+
+
+def _is_pod(obj) -> bool:
+    """A read-only data snapshot: properties, no constructor/signals/methods."""
+    if obj.is_frida_list or obj.constructors or obj.signals:
+        return False
+    prop_getter_ids = {p.getter for p in obj.properties}
+    for meth in obj.methods:
+        if meth.is_property_accessor:
+            continue
+        if meth.c_identifier.split(f"{_c_prefix(obj)}_", 1)[-1] in prop_getter_ids:
+            continue
+        return False
+    return bool(obj.properties)
 
 
 def _map_type(type, model) -> Optional[Mapped]:
@@ -75,7 +94,7 @@ def _map_type(type, model) -> Optional[Mapped]:
     obj = model.object_types.get(bare)
     if obj is not None and obj.c_type.startswith("Frida"):
         return Mapped("object", obj.pharo_name, obj.pharo_name,
-                      is_list=obj.is_frida_list)
+                      is_list=obj.is_frida_list, is_pod=_is_pod(obj))
 
     external = model.customizations.external_object_types.get(name)
     if external is not None:
@@ -179,7 +198,55 @@ def _emit_enumeration(enum) -> str:
     )
 
 
+def _emit_pod_class(obj, model) -> str:
+    """A POD type -> a plain, serialisable value object: instVars + accessors,
+    a class-side #fromHandle:owned: that reads each property once (reusing the
+    normal returning-call marshalling, keyed on the handle), then releases it."""
+    props = [(to_camel_case(p.name), p) for p in obj.properties if p.getter is not None]
+    ivars = [name for name, _ in props]
+    sections: List[str] = []
+    for name, _ in props:
+        sections.append(_method(f"{obj.pharo_name} >> {name}", GENERATED_TAG, [f"^ {name}"]))
+        sections.append(_method(f"{obj.pharo_name} >> set{_pascal(name)}: aValue",
+                                GENERATED_TAG, [f"{name} := aValue"]))
+    readers = []
+    for name, p in props:
+        mapped = _map_type(p.type, model)
+        if mapped is None:
+            continue
+        getter_c = f"{_c_prefix(obj)}_{p.getter}"
+        base = "read" + _pascal(name)
+        sections.append(_emit_returning_call(
+            obj, base, getter_c, [("aHandle", Mapped("pointer", "void*"))],
+            mapped, TransferOwnership.none, instance=False))
+        readers.append((name, base))
+    lines = ["| instance |",
+             "(aHandle isNil or: [ aHandle isNull ]) ifTrue: [ ^ nil ].",
+             "instance := self new."]
+    for name, base in readers:
+        lines.append(f"instance set{_pascal(name)}: (self {base}: aHandle).")
+    lines.append("isOwned ifTrue: [ FridaObject unref: aHandle ].")
+    lines.append("^ instance")
+    sections.append(_method(f"{obj.pharo_name} class >> fromHandle: aHandle owned: isOwned",
+                            GENERATED_TAG, lines))
+    sections.append(_method(f"{obj.pharo_name} class >> fromHandle: aHandle",
+                            GENERATED_TAG, ["^ self fromHandle: aHandle owned: true"]))
+    print_section = _emit_print_on(obj, model)
+    if print_section is not None:
+        sections.append(print_section)
+    identity_section = _emit_identity_properties(obj, model)
+    if identity_section is not None:
+        sections.append(identity_section)
+    sections.extend(_facade_sections(model, obj.pharo_name))
+    return _class_file(name=obj.pharo_name, superclass="Object",
+                       comment=f"GENERATED plain value snapshot of the Frida {obj.c_type}.",
+                       body_sections=sections, instance_variables=ivars)
+
+
 def _emit_object_type(obj, model) -> str:
+    if _is_pod(obj):
+        return _emit_pod_class(obj, model)
+
     parent = obj.parent
     if parent is not None and _is_emitted_object(parent):
         superclass = parent.pharo_name
@@ -563,19 +630,22 @@ def _emit_signal_method(obj, signal, model) -> Optional[str]:
         name = to_camel_case(p.name)
         if mapped.kind == "object":
             cb_params.append((name, "void*"))
-            decoded.append(f"FridaObject wrapBorrowed: {name}")
+            if mapped.is_pod:
+                decoded.append(f"{mapped.pharo_class} fromHandle: {name} owned: false")
+            else:
+                decoded.append(f"FridaObject wrapBorrowed: {name}")
         elif mapped.kind == "string":
             cb_params.append((name, "String"))
             decoded.append(name)
         elif mapped.kind == "bytes":
             cb_params.append((name, "void*"))
-            decoded.append(f"self byteArrayFromBytes: {name} owned: false")
+            decoded.append(f"FridaObject byteArrayFromBytes: {name} owned: false")
         elif mapped.kind == "variant":
             cb_params.append((name, "void*"))
-            decoded.append(f"self valueFromVariant: {name} owned: false")
+            decoded.append(f"FridaObject valueFromVariant: {name} owned: false")
         elif mapped.kind == "vardict":
             cb_params.append((name, "void*"))
-            decoded.append(f"self dictFromVardict: {name} owned: false")
+            decoded.append(f"FridaObject dictFromVardict: {name} owned: false")
         elif mapped.kind in ("scalar", "enum"):
             cb_params.append((name, mapped.token))
             decoded.append(name)
@@ -619,6 +689,8 @@ def _return_wrap_expr(mapped, transfer, value_expr: str) -> str:
     """Wrap a raw ffiCall result expression per the return kind."""
     owned = "true" if transfer == TransferOwnership.full else "false"
     if mapped.kind == "object":
+        if mapped.is_pod:
+            return f"{mapped.pharo_class} fromHandle: ({value_expr}) owned: {owned}"
         wrap = ("fromOwnedHandle:" if transfer == TransferOwnership.full
                 else "fromBorrowedHandle:")
         wrapped = f"{mapped.pharo_class} {wrap} ({value_expr})"
@@ -626,13 +698,13 @@ def _return_wrap_expr(mapped, transfer, value_expr: str) -> str:
             return f"({wrapped}) asArray"
         return wrapped
     if mapped.kind == "strv":
-        return f"self arrayFromStrv: ({value_expr}) owned: {owned}"
+        return f"FridaObject arrayFromStrv: ({value_expr}) owned: {owned}"
     if mapped.kind == "bytes":
-        return f"self byteArrayFromBytes: ({value_expr}) owned: {owned}"
+        return f"FridaObject byteArrayFromBytes: ({value_expr}) owned: {owned}"
     if mapped.kind == "variant":
-        return f"self valueFromVariant: ({value_expr}) owned: {owned}"
+        return f"FridaObject valueFromVariant: ({value_expr}) owned: {owned}"
     if mapped.kind == "vardict":
-        return f"self dictFromVardict: ({value_expr}) owned: {owned}"
+        return f"FridaObject dictFromVardict: ({value_expr}) owned: {owned}"
     if mapped.kind == "boolean":
         return f"({value_expr}) ~= 0"
     return value_expr
@@ -780,6 +852,7 @@ def _class_file(
     comment: str,
     body_sections: List[str],
     shared_variables: List[str] | None = None,
+    instance_variables: List[str] | None = None,
 ) -> str:
     lines = []
     if comment:
@@ -789,6 +862,9 @@ def _class_file(
     lines.append("Class {")
     lines.append(f"\t#name : '{name}',")
     lines.append(f"\t#superclass : '{superclass}',")
+    if instance_variables:
+        ivars = ", ".join(f"'{v}'" for v in instance_variables)
+        lines.append(f"\t#instVars : [ {ivars} ],")
     if shared_variables:
         shared = ", ".join(f"'{v}'" for v in shared_variables)
         lines.append(f"\t#classVars : [ {shared} ],")

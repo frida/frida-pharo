@@ -27,7 +27,7 @@ FridaDevice >> iconRaw [
 FridaDevice >> icon [
 	| result |
 	result := self iconRaw.
-	^ self valueFromVariant: (result) owned: false
+	^ FridaObject valueFromVariant: (result) owned: false
 ]
 
 { #category : 'generated' }
@@ -72,7 +72,7 @@ FridaDevice >> overrideOption: name val: val [
 FridaDevice >> querySystemParameters [
 	| raw |
 	raw := self asyncCall: [ :onReady | self querySystemParametersBegin: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self querySystemParametersFinish: asyncResult errorHolder: errorHolder ].
-	^ self dictFromVardict: (raw) owned: true
+	^ FridaObject dictFromVardict: (raw) owned: true
 ]
 
 { #category : 'generated' }
@@ -90,7 +90,7 @@ FridaDevice >> getFrontmostApplication: options [
 	| marshalled0 raw |
 	marshalled0 := options isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options getHandle ].
 	raw := self asyncCall: [ :onReady | self getFrontmostApplicationBegin: marshalled0 cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self getFrontmostApplicationFinish: asyncResult errorHolder: errorHolder ].
-	^ FridaApplication fromOwnedHandle: (raw)
+	^ FridaApplication fromHandle: (raw) owned: true
 ]
 
 { #category : 'generated' }
@@ -126,7 +126,7 @@ FridaDevice >> getProcessByPid: pid options: options [
 	| marshalled0 raw |
 	marshalled0 := options isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options getHandle ].
 	raw := self asyncCall: [ :onReady | self getProcessByPidBegin: pid marshalled0: marshalled0 cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self getProcessByPidFinish: asyncResult errorHolder: errorHolder ].
-	^ FridaProcess fromOwnedHandle: (raw)
+	^ FridaProcess fromHandle: (raw) owned: true
 ]
 
 { #category : 'generated' }
@@ -144,7 +144,7 @@ FridaDevice >> getProcessByName: name options: options [
 	| marshalled0 raw |
 	marshalled0 := options isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options getHandle ].
 	raw := self asyncCall: [ :onReady | self getProcessByNameBegin: name marshalled0: marshalled0 cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self getProcessByNameFinish: asyncResult errorHolder: errorHolder ].
-	^ FridaProcess fromOwnedHandle: (raw)
+	^ FridaProcess fromHandle: (raw) owned: true
 ]
 
 { #category : 'generated' }
@@ -162,7 +162,7 @@ FridaDevice >> findProcessByPid: pid options: options [
 	| marshalled0 raw |
 	marshalled0 := options isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options getHandle ].
 	raw := self asyncCall: [ :onReady | self findProcessByPidBegin: pid marshalled0: marshalled0 cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self findProcessByPidFinish: asyncResult errorHolder: errorHolder ].
-	^ FridaProcess fromOwnedHandle: (raw)
+	^ FridaProcess fromHandle: (raw) owned: true
 ]
 
 { #category : 'generated' }
@@ -180,7 +180,7 @@ FridaDevice >> findProcessByName: name options: options [
 	| marshalled0 raw |
 	marshalled0 := options isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options getHandle ].
 	raw := self asyncCall: [ :onReady | self findProcessByNameBegin: name marshalled0: marshalled0 cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self findProcessByNameFinish: asyncResult errorHolder: errorHolder ].
-	^ FridaProcess fromOwnedHandle: (raw)
+	^ FridaProcess fromHandle: (raw) owned: true
 ]
 
 { #category : 'generated' }
@@ -466,42 +466,42 @@ FridaDevice >> onSpawnGatingDisabled: aBlock [
 { #category : 'generated' }
 FridaDevice >> onSpawnAdded: aBlock [
 	| callback |
-	callback := FFICallback signature: #(void (void* instance, void* spawn, void* userData)) block: [ :instance :spawn :userData | aBlock valueWithArguments: { FridaObject wrapBorrowed: spawn } ].
+	callback := FFICallback signature: #(void (void* instance, void* spawn, void* userData)) block: [ :instance :spawn :userData | aBlock valueWithArguments: { FridaSpawn fromHandle: spawn owned: false } ].
 	^ self connectSignal: 'spawn-added' callback: callback
 ]
 
 { #category : 'generated' }
 FridaDevice >> onSpawnRemoved: aBlock [
 	| callback |
-	callback := FFICallback signature: #(void (void* instance, void* spawn, void* userData)) block: [ :instance :spawn :userData | aBlock valueWithArguments: { FridaObject wrapBorrowed: spawn } ].
+	callback := FFICallback signature: #(void (void* instance, void* spawn, void* userData)) block: [ :instance :spawn :userData | aBlock valueWithArguments: { FridaSpawn fromHandle: spawn owned: false } ].
 	^ self connectSignal: 'spawn-removed' callback: callback
 ]
 
 { #category : 'generated' }
 FridaDevice >> onChildAdded: aBlock [
 	| callback |
-	callback := FFICallback signature: #(void (void* instance, void* child, void* userData)) block: [ :instance :child :userData | aBlock valueWithArguments: { FridaObject wrapBorrowed: child } ].
+	callback := FFICallback signature: #(void (void* instance, void* child, void* userData)) block: [ :instance :child :userData | aBlock valueWithArguments: { FridaChild fromHandle: child owned: false } ].
 	^ self connectSignal: 'child-added' callback: callback
 ]
 
 { #category : 'generated' }
 FridaDevice >> onChildRemoved: aBlock [
 	| callback |
-	callback := FFICallback signature: #(void (void* instance, void* child, void* userData)) block: [ :instance :child :userData | aBlock valueWithArguments: { FridaObject wrapBorrowed: child } ].
+	callback := FFICallback signature: #(void (void* instance, void* child, void* userData)) block: [ :instance :child :userData | aBlock valueWithArguments: { FridaChild fromHandle: child owned: false } ].
 	^ self connectSignal: 'child-removed' callback: callback
 ]
 
 { #category : 'generated' }
 FridaDevice >> onProcessCrashed: aBlock [
 	| callback |
-	callback := FFICallback signature: #(void (void* instance, void* crash, void* userData)) block: [ :instance :crash :userData | aBlock valueWithArguments: { FridaObject wrapBorrowed: crash } ].
+	callback := FFICallback signature: #(void (void* instance, void* crash, void* userData)) block: [ :instance :crash :userData | aBlock valueWithArguments: { FridaCrash fromHandle: crash owned: false } ].
 	^ self connectSignal: 'process-crashed' callback: callback
 ]
 
 { #category : 'generated' }
 FridaDevice >> onOutput: aBlock [
 	| callback |
-	callback := FFICallback signature: #(void (void* instance, uint pid, int fd, void* data, void* userData)) block: [ :instance :pid :fd :data :userData | aBlock valueWithArguments: { pid . fd . self byteArrayFromBytes: data owned: false } ].
+	callback := FFICallback signature: #(void (void* instance, uint pid, int fd, void* data, void* userData)) block: [ :instance :pid :fd :data :userData | aBlock valueWithArguments: { pid . fd . FridaObject byteArrayFromBytes: data owned: false } ].
 	^ self connectSignal: 'output' callback: callback
 ]
 

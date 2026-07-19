@@ -156,7 +156,7 @@ FridaScript >> onDestroyed: aBlock [
 { #category : 'generated' }
 FridaScript >> onMessage: aBlock [
 	| callback |
-	callback := FFICallback signature: #(void (void* instance, String json, void* data, void* userData)) block: [ :instance :json :data :userData | aBlock valueWithArguments: { json . self byteArrayFromBytes: data owned: false } ].
+	callback := FFICallback signature: #(void (void* instance, String json, void* data, void* userData)) block: [ :instance :json :data :userData | aBlock valueWithArguments: { json . FridaObject byteArrayFromBytes: data owned: false } ].
 	^ self connectSignal: 'message' callback: callback
 ]
 

@@ -35,7 +35,7 @@ FridaPortalOptions >> acl [
 	lengthHolder := ExternalAddress allocate: 4.
 	result := self aclRaw: lengthHolder.
 	lengthHolder free.
-	^ self arrayFromStrv: (result) owned: false
+	^ FridaObject arrayFromStrv: (result) owned: false
 ]
 
 { #category : 'generated' }

@@ -22,7 +22,7 @@ FridaProcessList >> getRaw: index [
 FridaProcessList >> get: index [
 	| result |
 	result := self getRaw: index.
-	^ FridaProcess fromOwnedHandle: (result)
+	^ FridaProcess fromHandle: (result) owned: true
 ]
 
 { #category : 'generated' }
