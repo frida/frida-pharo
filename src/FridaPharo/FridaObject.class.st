@@ -250,6 +250,16 @@ FridaObject >> connectSignal: aSignalName callback: aCallback [
 	^ FridaSignalSubscription source: self handlerId: handlerId callback: aCallback
 ]
 
+{ #category : 'inspecting' }
+FridaObject >> gtItemsFor: aView [
+	<gtView>
+	self isCollection ifFalse: [ ^ aView empty ].
+	^ aView list
+		title: 'Items';
+		priority: 40;
+		items: [ self asArray ]
+]
+
 { #category : 'finalization' }
 FridaObject >> finalize [
 	FridaObject unref: self getHandle
