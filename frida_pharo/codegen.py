@@ -40,10 +40,12 @@ _SCALAR_TOKENS = {
 class Mapped:
     """A GIR type resolved to how Pharo should marshal it."""
 
-    def __init__(self, kind: str, token: str, pharo_class: Optional[str] = None):
+    def __init__(self, kind: str, token: str, pharo_class: Optional[str] = None,
+                 is_list: bool = False):
         self.kind = kind  # scalar | string | object | enum | void
         self.token = token
         self.pharo_class = pharo_class
+        self.is_list = is_list
 
 
 def _map_type(type, model) -> Optional[Mapped]:
@@ -72,7 +74,8 @@ def _map_type(type, model) -> Optional[Mapped]:
 
     obj = model.object_types.get(bare)
     if obj is not None and obj.c_type.startswith("Frida"):
-        return Mapped("object", obj.pharo_name, obj.pharo_name)
+        return Mapped("object", obj.pharo_name, obj.pharo_name,
+                      is_list=obj.is_frida_list)
 
     external = model.customizations.external_object_types.get(name)
     if external is not None:
@@ -618,7 +621,10 @@ def _return_wrap_expr(mapped, transfer, value_expr: str) -> str:
     if mapped.kind == "object":
         wrap = ("fromOwnedHandle:" if transfer == TransferOwnership.full
                 else "fromBorrowedHandle:")
-        return f"{mapped.pharo_class} {wrap} ({value_expr})"
+        wrapped = f"{mapped.pharo_class} {wrap} ({value_expr})"
+        if mapped.is_list:
+            return f"({wrapped}) asArray"
+        return wrapped
     if mapped.kind == "strv":
         return f"self arrayFromStrv: ({value_expr}) owned: {owned}"
     if mapped.kind == "bytes":

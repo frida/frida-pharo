@@ -108,7 +108,7 @@ FridaDevice >> enumerateApplications: options [
 	| marshalled0 raw |
 	marshalled0 := options isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options getHandle ].
 	raw := self asyncCall: [ :onReady | self enumerateApplicationsBegin: marshalled0 cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self enumerateApplicationsFinish: asyncResult errorHolder: errorHolder ].
-	^ FridaApplicationList fromOwnedHandle: (raw)
+	^ (FridaApplicationList fromOwnedHandle: (raw)) asArray
 ]
 
 { #category : 'generated' }
@@ -198,7 +198,7 @@ FridaDevice >> enumerateProcesses: options [
 	| marshalled0 raw |
 	marshalled0 := options isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options getHandle ].
 	raw := self asyncCall: [ :onReady | self enumerateProcessesBegin: marshalled0 cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self enumerateProcessesFinish: asyncResult errorHolder: errorHolder ].
-	^ FridaProcessList fromOwnedHandle: (raw)
+	^ (FridaProcessList fromOwnedHandle: (raw)) asArray
 ]
 
 { #category : 'generated' }
@@ -250,7 +250,7 @@ FridaDevice >> disableSpawnGatingFinish: asyncResult errorHolder: errorHolder [
 FridaDevice >> enumeratePendingSpawn [
 	| raw |
 	raw := self asyncCall: [ :onReady | self enumeratePendingSpawnBegin: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self enumeratePendingSpawnFinish: asyncResult errorHolder: errorHolder ].
-	^ FridaSpawnList fromOwnedHandle: (raw)
+	^ (FridaSpawnList fromOwnedHandle: (raw)) asArray
 ]
 
 { #category : 'generated' }
@@ -267,7 +267,7 @@ FridaDevice >> enumeratePendingSpawnFinish: asyncResult errorHolder: errorHolder
 FridaDevice >> enumeratePendingChildren [
 	| raw |
 	raw := self asyncCall: [ :onReady | self enumeratePendingChildrenBegin: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self enumeratePendingChildrenFinish: asyncResult errorHolder: errorHolder ].
-	^ FridaChildList fromOwnedHandle: (raw)
+	^ (FridaChildList fromOwnedHandle: (raw)) asArray
 ]
 
 { #category : 'generated' }

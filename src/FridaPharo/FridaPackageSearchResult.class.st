@@ -17,7 +17,7 @@ FridaPackageSearchResult >> packagesRaw [
 FridaPackageSearchResult >> packages [
 	| result |
 	result := self packagesRaw.
-	^ FridaPackageList fromBorrowedHandle: (result)
+	^ (FridaPackageList fromBorrowedHandle: (result)) asArray
 ]
 
 { #category : 'generated' }

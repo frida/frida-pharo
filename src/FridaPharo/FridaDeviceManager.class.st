@@ -130,7 +130,7 @@ FridaDeviceManager >> findDeviceByTypeFinish: asyncResult errorHolder: errorHold
 FridaDeviceManager >> enumerateDevices [
 	| raw |
 	raw := self asyncCall: [ :onReady | self enumerateDevicesBegin: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self enumerateDevicesFinish: asyncResult errorHolder: errorHolder ].
-	^ FridaDeviceList fromOwnedHandle: (raw)
+	^ (FridaDeviceList fromOwnedHandle: (raw)) asArray
 ]
 
 { #category : 'generated' }

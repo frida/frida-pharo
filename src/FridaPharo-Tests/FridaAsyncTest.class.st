@@ -37,7 +37,7 @@ FridaAsyncTest >> testEnumerateDevicesReturnsLocal [
 	manager := FridaDeviceManager new.
 	devices := manager enumerateDevices.
 	self assert: devices size >= 1.
-	device := devices get: 0.
+	device := devices first.
 	self assert: device id isString.
 	self deny: device id isEmpty
 ]
