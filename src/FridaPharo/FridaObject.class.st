@@ -258,21 +258,6 @@ FridaObject class >> identityProperties [
 ]
 
 { #category : 'inspecting' }
-FridaObject >> gtItemsFor: aView [
-	<gtView>
-	| items list props |
-	self isCollection ifFalse: [ ^ aView empty ].
-	items := self asArray.
-	list := aView columnedList.
-	list title: 'Items'; priority: 40; items: [ items ].
-	props := items isEmpty ifTrue: [ #() ] ifFalse: [ items first class identityProperties ].
-	props isEmpty
-		ifTrue: [ list column: 'Item' text: [ :each | each printString ] ]
-		ifFalse: [ props do: [ :p | list column: p asString text: [ :each | each displayValueOf: p ] ] ].
-	^ list
-]
-
-{ #category : 'inspecting' }
 FridaObject >> gtPropertiesFor: aView [
 	<gtView>
 	| props |

@@ -198,51 +198,6 @@ def _emit_enumeration(enum) -> str:
     )
 
 
-def _emit_pod_class(obj, model) -> str:
-    """A POD type -> a plain, serialisable value object: instVars + accessors,
-    a class-side #fromHandle:owned: that reads each property once (reusing the
-    normal returning-call marshalling, keyed on the handle), then releases it."""
-    props = [(to_camel_case(p.name), p) for p in obj.properties if p.getter is not None]
-    ivars = [name for name, _ in props]
-    sections: List[str] = []
-    for name, _ in props:
-        sections.append(_method(f"{obj.pharo_name} >> {name}", GENERATED_TAG, [f"^ {name}"]))
-        sections.append(_method(f"{obj.pharo_name} >> set{_pascal(name)}: aValue",
-                                GENERATED_TAG, [f"{name} := aValue"]))
-    readers = []
-    for name, p in props:
-        mapped = _map_type(p.type, model)
-        if mapped is None:
-            continue
-        getter_c = f"{_c_prefix(obj)}_{p.getter}"
-        base = "read" + _pascal(name)
-        sections.append(_emit_returning_call(
-            obj, base, getter_c, [("aHandle", Mapped("pointer", "void*"))],
-            mapped, TransferOwnership.none, instance=False))
-        readers.append((name, base))
-    lines = ["| instance |",
-             "(aHandle isNil or: [ aHandle isNull ]) ifTrue: [ ^ nil ].",
-             "instance := self new."]
-    for name, base in readers:
-        lines.append(f"instance set{_pascal(name)}: (self {base}: aHandle).")
-    lines.append("isOwned ifTrue: [ FridaObject unref: aHandle ].")
-    lines.append("^ instance")
-    sections.append(_method(f"{obj.pharo_name} class >> fromHandle: aHandle owned: isOwned",
-                            GENERATED_TAG, lines))
-    sections.append(_method(f"{obj.pharo_name} class >> fromHandle: aHandle",
-                            GENERATED_TAG, ["^ self fromHandle: aHandle owned: true"]))
-    print_section = _emit_print_on(obj, model)
-    if print_section is not None:
-        sections.append(print_section)
-    identity_section = _emit_identity_properties(obj, model)
-    if identity_section is not None:
-        sections.append(identity_section)
-    sections.extend(_facade_sections(model, obj.pharo_name))
-    return _class_file(name=obj.pharo_name, superclass="Object",
-                       comment=f"GENERATED plain value snapshot of the Frida {obj.c_type}.",
-                       body_sections=sections, instance_variables=ivars)
-
-
 def _emit_object_type(obj, model) -> str:
     if _is_pod(obj):
         return _emit_pod_class(obj, model)
@@ -304,6 +259,51 @@ def _emit_object_type(obj, model) -> str:
     )
 
 
+def _emit_pod_class(obj, model) -> str:
+    """A POD type -> a plain, serialisable value object: instVars + accessors,
+    a class-side #fromHandle:owned: that reads each property once (reusing the
+    normal returning-call marshalling, keyed on the handle), then releases it."""
+    props = [(to_camel_case(p.name), p) for p in obj.properties if p.getter is not None]
+    ivars = [name for name, _ in props]
+    sections: List[str] = []
+    for name, _ in props:
+        sections.append(_method(f"{obj.pharo_name} >> {name}", GENERATED_TAG, [f"^ {name}"]))
+        sections.append(_method(f"{obj.pharo_name} >> set{_pascal(name)}: aValue",
+                                GENERATED_TAG, [f"{name} := aValue"]))
+    readers = []
+    for name, p in props:
+        mapped = _map_type(p.type, model)
+        if mapped is None:
+            continue
+        getter_c = f"{_c_prefix(obj)}_{p.getter}"
+        base = "read" + _pascal(name)
+        sections.append(_emit_returning_call(
+            obj, base, getter_c, [("aHandle", Mapped("pointer", "void*"))],
+            mapped, TransferOwnership.none, instance=False))
+        readers.append((name, base))
+    lines = ["| instance |",
+             "(aHandle isNil or: [ aHandle isNull ]) ifTrue: [ ^ nil ].",
+             "instance := self new."]
+    for name, base in readers:
+        lines.append(f"instance set{_pascal(name)}: (self {base}: aHandle).")
+    lines.append("isOwned ifTrue: [ FridaObject unref: aHandle ].")
+    lines.append("^ instance")
+    sections.append(_method(f"{obj.pharo_name} class >> fromHandle: aHandle owned: isOwned",
+                            GENERATED_TAG, lines))
+    sections.append(_method(f"{obj.pharo_name} class >> fromHandle: aHandle",
+                            GENERATED_TAG, ["^ self fromHandle: aHandle owned: true"]))
+    print_section = _emit_print_on(obj, model)
+    if print_section is not None:
+        sections.append(print_section)
+    identity_section = _emit_identity_properties(obj, model)
+    if identity_section is not None:
+        sections.append(identity_section)
+    sections.extend(_facade_sections(model, obj.pharo_name))
+    return _class_file(name=obj.pharo_name, superclass="Object",
+                       comment=f"GENERATED plain value snapshot of the Frida {obj.c_type}.",
+                       body_sections=sections, instance_variables=ivars)
+
+
 def _emit_print_on(obj, model) -> Optional[str]:
     """Emit a #printOn: showing the type's identifying properties.
 
@@ -343,29 +343,16 @@ def _emit_identity_properties(obj, model) -> Optional[str]:
 
 
 def _emit_list_protocol(obj) -> List[str]:
-    """Pharo collection protocol for a Frida `*List` GObject.
-
-    Every list type exposes the generic ``size`` / ``get:`` accessors (emitted
-    from its .gir methods); expressed in terms of those, the collection sugar is
-    entirely type-agnostic. The underlying ``get:`` is 0-based; Pharo idiom is
-    1-based, so ``at:`` and ``do:`` bridge that here.
-    """
+    """A Frida `*List` GObject is transient: callers only ever receive the Array
+    it materialises into (see the list return-wrapping), so all it needs beyond
+    the .gir `size` / `get:` is #asArray. `get:` is 0-based (converts each
+    element per its return kind)."""
     return [
-        _method(f"{obj.pharo_name} >> at: anIndex", GENERATED_TAG,
-                ["^ self get: anIndex - 1"]),
-        _method(f"{obj.pharo_name} >> do: aBlock", GENERATED_TAG,
-                ["0 to: self size - 1 do: [ :i | aBlock value: (self get: i) ]"]),
-        _method(f"{obj.pharo_name} >> collect: aBlock", GENERATED_TAG,
-                ["^ self asArray collect: aBlock"]),
         _method(f"{obj.pharo_name} >> asArray", GENERATED_TAG,
                 ["| result |",
                  "result := Array new: self size.",
                  "1 to: self size do: [ :i | result at: i put: (self get: i - 1) ].",
                  "^ result"]),
-        _method(f"{obj.pharo_name} >> isEmpty", GENERATED_TAG,
-                ["^ self size = 0"]),
-        _method(f"{obj.pharo_name} >> isCollection", GENERATED_TAG,
-                ["^ true"]),
     ]
 
 

@@ -26,35 +26,10 @@ FridaApplicationList >> get: index [
 ]
 
 { #category : 'generated' }
-FridaApplicationList >> at: anIndex [
-	^ self get: anIndex - 1
-]
-
-{ #category : 'generated' }
-FridaApplicationList >> do: aBlock [
-	0 to: self size - 1 do: [ :i | aBlock value: (self get: i) ]
-]
-
-{ #category : 'generated' }
-FridaApplicationList >> collect: aBlock [
-	^ self asArray collect: aBlock
-]
-
-{ #category : 'generated' }
 FridaApplicationList >> asArray [
 	| result |
 	result := Array new: self size.
 	1 to: self size do: [ :i | result at: i put: (self get: i - 1) ].
 	^ result
-]
-
-{ #category : 'generated' }
-FridaApplicationList >> isEmpty [
-	^ self size = 0
-]
-
-{ #category : 'generated' }
-FridaApplicationList >> isCollection [
-	^ true
 ]
 
