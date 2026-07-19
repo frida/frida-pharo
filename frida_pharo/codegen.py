@@ -41,13 +41,15 @@ class Mapped:
     """A GIR type resolved to how Pharo should marshal it."""
 
     def __init__(self, kind: str, token: str, pharo_class: Optional[str] = None,
-                 is_list: bool = False, is_pod: bool = False, is_options: bool = False):
+                 is_list: bool = False, is_pod: bool = False, is_options: bool = False,
+                 is_cancellable: bool = False):
         self.kind = kind  # scalar | string | object | enum | void
         self.token = token
         self.pharo_class = pharo_class
         self.is_list = is_list
         self.is_pod = is_pod
         self.is_options = is_options
+        self.is_cancellable = is_cancellable
 
 
 def _pascal(camel: str) -> str:
@@ -84,6 +86,8 @@ def _map_type(type, model) -> Optional[Mapped]:
     if name == "GLib.HashTable":
         # frida models its a{sv}-style tables as GHashTable<utf8, GVariant>.
         return Mapped("vardict", "void*")
+    if name == "Gio.Cancellable":
+        return Mapped("object", "void*", "FridaCancellable", is_cancellable=True)
     if name in _SCALAR_TOKENS:
         return Mapped("scalar", _SCALAR_TOKENS[name])
 
@@ -386,6 +390,7 @@ def _emit_constructor(obj, ctor, model) -> Optional[str]:
     params = _map_parameters(ctor.parameters, model)
     if params is None:
         return None
+    params = _typed(params)
 
     base = to_camel_case(ctor.name)
     selector = _selector(base, params)
@@ -509,8 +514,10 @@ def _emit_property_setter(obj, prop, model) -> Optional[str]:
 def _emit_method(obj, meth, model) -> Optional[str]:
     base = to_camel_case(meth.name)
     if meth.is_async:
-        section = _emit_async_method(obj, meth, model)
         params = _async_params(meth, model)
+        if params is None:
+            return None
+        section = _emit_async_method(obj, meth, model, params)
     else:
         params = _map_parameters(meth.parameters, model)
         if params is None:
@@ -521,54 +528,62 @@ def _emit_method(obj, meth, model) -> Optional[str]:
             return None
         transfer = (meth.return_value.transfer_ownership
                     if meth.return_value is not None else TransferOwnership.none)
-        section = _emit_returning_call(obj, base, meth.c_identifier, params, mapped,
-                                       transfer, instance=True, throws=meth.throws)
+        section = _emit_returning_call(obj, base, meth.c_identifier, _typed(params),
+                                       mapped, transfer, instance=True, throws=meth.throws)
 
     if section is None:
         return None
-    overload = _emit_default_options_overload(obj, base, params)
-    if overload is not None:
-        section += "\n" + overload
+    overloads = _emit_optional_overloads(obj, base, params)
+    if overloads is not None:
+        section += "\n" + overloads
     return section
 
 
-def _emit_default_options_overload(obj, base, params) -> Optional[str]:
-    """A method whose trailing argument is an options object also gets an
-    overload that omits it and passes nil, so callers can rely on the defaults
-    without naming the option they are not setting."""
-    if not params or not (params[-1][1].kind == "object" and params[-1][1].is_options):
+def _emit_optional_overloads(obj, base, params) -> Optional[str]:
+    """A trailing run of optional (nullable) parameters may be omitted: for each
+    such parameter, emit an overload that drops it (and everything after it) and
+    delegates to the full selector passing nil, so callers name only the
+    arguments they care about."""
+    trailing = 0
+    for _name, _mapped, optional in reversed(params):
+        if not optional:
+            break
+        trailing += 1
+    if trailing == 0:
         return None
-    values = [name for name, _ in params]
-    values[-1] = "nil"
-    if len(params) == 1:
-        send = f"self {base}: nil"
-    else:
-        parts = [f"{base}: {values[0]}"]
-        for (name, _), value in zip(params[1:], values[1:]):
-            parts.append(f"{name}: {value}")
-        send = "self " + " ".join(parts)
-    return _method(f"{obj.pharo_name} >> {_selector(base, params[:-1])}",
-                   GENERATED_TAG, [f"^ {send}"])
+    names = [name for name, _, _ in params]
+    keywords = [base] + names[1:]
+    sections = []
+    for dropped in range(1, trailing + 1):
+        values = list(names)
+        for i in range(len(params) - dropped, len(params)):
+            values[i] = "nil"
+        parts = [f"{keywords[0]}: {values[0]}"]
+        for keyword, value in zip(keywords[1:], values[1:]):
+            parts.append(f"{keyword}: {value}")
+        selector = _selector(base, _typed(params[:len(params) - dropped]))
+        sections.append(_method(f"{obj.pharo_name} >> {selector}",
+                                GENERATED_TAG, [f"^ self {' '.join(parts)}"]))
+    return "\n".join(sections)
+
+
+def _typed(params) -> list:
+    """Drop the per-parameter optionality flag, leaving (name, Mapped) pairs for
+    the selector/marshalling helpers."""
+    return [(name, mapped) for name, mapped, _optional in params]
 
 
 def _async_params(meth, model) -> Optional[list]:
-    # The cancellable is passed as NULL, so it is not a Pharo parameter.
-    in_params = [p for p in meth.input_parameters
-                 if p.type.name != "Gio.Cancellable"]
     params = []
-    for p in in_params:
+    for p in meth.input_parameters:
         mapped = _map_type(p.type, model)
         if mapped is None or mapped.kind == "strv":
             return None
-        params.append((to_camel_case(p.name), mapped))
+        params.append((to_camel_case(p.name), mapped, p.optional))
     return params
 
 
-def _emit_async_method(obj, meth, model) -> Optional[str]:
-    params = _async_params(meth, model)
-    if params is None:
-        return None
-
+def _emit_async_method(obj, meth, model, params) -> Optional[str]:
     ret = meth.return_value.type if meth.return_value is not None else None
     mapped = _map_type(ret, model)
     if mapped is None:
@@ -579,6 +594,11 @@ def _emit_async_method(obj, meth, model) -> Optional[str]:
     prefix = f"{obj.pharo_name} >> "
     base = to_camel_case(meth.name)
 
+    # The GCancellable rides the _begin call's dedicated cancellable slot rather
+    # than the data arguments, so it is pulled out of the marshalling loop.
+    cancellable_name = next((name for name, m, _ in params if m.is_cancellable), None)
+    data_params = [(name, m) for name, m, _ in params if not m.is_cancellable]
+
     # Reference-typed args are built before _begin and freed after _finish, as in
     # the synchronous emitter; the rest pass straight through (uFFI marshals
     # FFIExternalObject handles and enum values). The result is delivered by the
@@ -586,7 +606,7 @@ def _emit_async_method(obj, meth, model) -> Optional[str]:
     # dispatch via FridaObject>>asyncCall:finish:.
     prologue, epilogue, begin_params, option_locals = [], [], [], []
     marshalled = 0
-    for name, m in params:
+    for name, m in data_params:
         if m.kind == "object" and m.is_options:
             obj_local = f"options{len(option_locals)}"
             option_locals.append(obj_local)
@@ -620,6 +640,11 @@ def _emit_async_method(obj, meth, model) -> Optional[str]:
         else:
             begin_params.append((name, m))
 
+    cancellable_local = None
+    if cancellable_name is not None:
+        cancellable_local = "cancellableHandle"
+        prologue.append(f"{cancellable_local} := {cancellable_name} isNil ifTrue: [ ExternalAddress null ] ifFalse: [ {cancellable_name} getHandle ].")
+
     trailer = [("cancellable", Mapped("pointer", "void*")),
                ("onReady", Mapped("pointer", "void*")),
                ("userData", Mapped("pointer", "void*"))]
@@ -644,8 +669,12 @@ def _emit_async_method(obj, meth, model) -> Optional[str]:
          f"({_ffi_arg_spec('self', finish_prim_params)})) library: FridaLibrary"],
     )
 
-    begin_send = _async_begin_send(begin_base, begin_prim_params)
-    temps = option_locals + [f"marshalled{i}" for i in range(marshalled)] + ["raw"]
+    cancellable_value = cancellable_local if cancellable_local is not None else "ExternalAddress null"
+    begin_send = _async_begin_send(begin_base, begin_prim_params, cancellable_value)
+    temps = option_locals + [f"marshalled{i}" for i in range(marshalled)]
+    if cancellable_local is not None:
+        temps.append(cancellable_local)
+    temps.append("raw")
     lines = ["| " + " ".join(temps) + " |"]
     lines += prologue
     lines.append(
@@ -656,7 +685,7 @@ def _emit_async_method(obj, meth, model) -> Optional[str]:
         lines.append("^ self")
     else:
         lines.append(f"^ {_return_wrap_expr(mapped, transfer, 'raw')}")
-    wrapper = _method(f"{prefix}{_selector(base, params)}", GENERATED_TAG, lines)
+    wrapper = _method(f"{prefix}{_selector(base, _typed(params))}", GENERATED_TAG, lines)
     return wrapper + "\n" + begin_prim + "\n" + finish_prim
 
 
@@ -714,11 +743,12 @@ def _emit_signal_method(obj, signal, model) -> Optional[str]:
     return _method(f"{obj.pharo_name} >> {selector}", GENERATED_TAG, body)
 
 
-def _async_begin_send(begin_base, begin_prim_params) -> str:
-    """The _begin send inside the onReady block: the cancellable and user_data
-    slots become NULL, onReady becomes the block argument, and the remaining
-    args pass through by their marshalled names."""
-    values = {"cancellable": "ExternalAddress null",
+def _async_begin_send(begin_base, begin_prim_params, cancellable_value="ExternalAddress null") -> str:
+    """The _begin send inside the onReady block: the cancellable slot takes the
+    caller's cancellable (NULL when none), user_data becomes NULL, onReady
+    becomes the block argument, and the remaining args pass through by their
+    marshalled names."""
+    values = {"cancellable": cancellable_value,
               "onReady": "onReady",
               "userData": "ExternalAddress null"}
     first_name = begin_prim_params[0][0]
@@ -783,6 +813,11 @@ def _emit_returning_call(obj, base, c_identifier, params, mapped, transfer,
             local = f"marshalled{marshalled_locals}"
             marshalled_locals += 1
             prologue += _explode_options_lines(name, m.pharo_class, obj_local, local)
+            prim_params.append((local, Mapped("pointer", "void*")))
+        elif m.kind == "object" and m.is_cancellable:
+            local = f"marshalled{marshalled_locals}"
+            marshalled_locals += 1
+            prologue.append(f"{local} := {name} isNil ifTrue: [ ExternalAddress null ] ifFalse: [ {name} getHandle ].")
             prim_params.append((local, Mapped("pointer", "void*")))
         elif m.kind == "bytes":
             local = f"marshalled{marshalled_locals}"
@@ -872,7 +907,7 @@ def _send(receiver, selector_base, params) -> str:
 
 
 def _map_parameters(parameters, model):
-    """Return [(pharo_name, Mapped)] or None if any parameter is unsupported."""
+    """Return [(pharo_name, Mapped, optional)] or None if any param is unsupported."""
     result = []
     for p in parameters:
         if p.direction.value != "in":
@@ -884,7 +919,7 @@ def _map_parameters(parameters, model):
         # strv inputs (gchar** + length param) are still a follow-up.
         if mapped.kind == "strv":
             return None
-        result.append((to_camel_case(p.name), mapped))
+        result.append((to_camel_case(p.name), mapped, p.optional))
     return result
 
 

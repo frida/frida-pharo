@@ -14,9 +14,10 @@ FridaService >> isClosed [
 ]
 
 { #category : 'generated' }
-FridaService >> activate [
-	| raw |
-	raw := self asyncCall: [ :onReady | self activateBegin: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self activateFinish: asyncResult errorHolder: errorHolder ].
+FridaService >> activate: cancellable [
+	| cancellableHandle raw |
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self activateBegin: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self activateFinish: asyncResult errorHolder: errorHolder ].
 	^ self
 ]
 
@@ -31,9 +32,15 @@ FridaService >> activateFinish: asyncResult errorHolder: errorHolder [
 ]
 
 { #category : 'generated' }
-FridaService >> cancel [
-	| raw |
-	raw := self asyncCall: [ :onReady | self cancelBegin: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self cancelFinish: asyncResult errorHolder: errorHolder ].
+FridaService >> activate [
+	^ self activate: nil
+]
+
+{ #category : 'generated' }
+FridaService >> cancel: cancellable [
+	| cancellableHandle raw |
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self cancelBegin: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self cancelFinish: asyncResult errorHolder: errorHolder ].
 	^ self
 ]
 
@@ -48,10 +55,16 @@ FridaService >> cancelFinish: asyncResult errorHolder: errorHolder [
 ]
 
 { #category : 'generated' }
-FridaService >> request: parameters [
-	| marshalled0 raw |
+FridaService >> cancel [
+	^ self cancel: nil
+]
+
+{ #category : 'generated' }
+FridaService >> request: parameters cancellable: cancellable [
+	| marshalled0 cancellableHandle raw |
 	marshalled0 := FridaVariant encode: parameters.
-	raw := self asyncCall: [ :onReady | self requestBegin: marshalled0 cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self requestFinish: asyncResult errorHolder: errorHolder ].
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self requestBegin: marshalled0 cancellable: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self requestFinish: asyncResult errorHolder: errorHolder ].
 	FridaGlue variantUnref: marshalled0.
 	^ FridaObject valueFromVariant: (raw) owned: true
 ]
@@ -64,6 +77,11 @@ FridaService >> requestBegin: marshalled0 cancellable: cancellable onReady: onRe
 { #category : 'generated' }
 FridaService >> requestFinish: asyncResult errorHolder: errorHolder [
 	^ self ffiCall: #(void* frida_service_request_finish (self, void* asyncResult, void* errorHolder)) library: FridaLibrary
+]
+
+{ #category : 'generated' }
+FridaService >> request: parameters [
+	^ self request: parameters cancellable: nil
 ]
 
 { #category : 'generated' }

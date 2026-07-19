@@ -9,9 +9,10 @@ Class {
 }
 
 { #category : 'generated' }
-FridaPortalMembership >> terminate [
-	| raw |
-	raw := self asyncCall: [ :onReady | self terminateBegin: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self terminateFinish: asyncResult errorHolder: errorHolder ].
+FridaPortalMembership >> terminate: cancellable [
+	| cancellableHandle raw |
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self terminateBegin: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self terminateFinish: asyncResult errorHolder: errorHolder ].
 	^ self
 ]
 
@@ -23,5 +24,10 @@ FridaPortalMembership >> terminateBegin: cancellable onReady: onReady userData: 
 { #category : 'generated' }
 FridaPortalMembership >> terminateFinish: asyncResult errorHolder: errorHolder [
 	^ self ffiCall: #(void frida_portal_membership_terminate_finish (self, void* asyncResult, void* errorHolder)) library: FridaLibrary
+]
+
+{ #category : 'generated' }
+FridaPortalMembership >> terminate [
+	^ self terminate: nil
 ]
 

@@ -42,9 +42,10 @@ FridaDeviceManager class >> withSocketBackendOnly [
 ]
 
 { #category : 'generated' }
-FridaDeviceManager >> close [
-	| raw |
-	raw := self asyncCall: [ :onReady | self closeBegin: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self closeFinish: asyncResult errorHolder: errorHolder ].
+FridaDeviceManager >> close: cancellable [
+	| cancellableHandle raw |
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self closeBegin: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self closeFinish: asyncResult errorHolder: errorHolder ].
 	^ self
 ]
 
@@ -59,9 +60,15 @@ FridaDeviceManager >> closeFinish: asyncResult errorHolder: errorHolder [
 ]
 
 { #category : 'generated' }
-FridaDeviceManager >> getDeviceById: id timeout: timeout [
-	| raw |
-	raw := self asyncCall: [ :onReady | self getDeviceByIdBegin: id timeout: timeout cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self getDeviceByIdFinish: asyncResult errorHolder: errorHolder ].
+FridaDeviceManager >> close [
+	^ self close: nil
+]
+
+{ #category : 'generated' }
+FridaDeviceManager >> getDeviceById: id timeout: timeout cancellable: cancellable [
+	| cancellableHandle raw |
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self getDeviceByIdBegin: id timeout: timeout cancellable: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self getDeviceByIdFinish: asyncResult errorHolder: errorHolder ].
 	^ FridaDevice fromOwnedHandle: (raw)
 ]
 
@@ -76,9 +83,15 @@ FridaDeviceManager >> getDeviceByIdFinish: asyncResult errorHolder: errorHolder 
 ]
 
 { #category : 'generated' }
-FridaDeviceManager >> getDeviceByType: type timeout: timeout [
-	| raw |
-	raw := self asyncCall: [ :onReady | self getDeviceByTypeBegin: type timeout: timeout cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self getDeviceByTypeFinish: asyncResult errorHolder: errorHolder ].
+FridaDeviceManager >> getDeviceById: id timeout: timeout [
+	^ self getDeviceById: id timeout: timeout cancellable: nil
+]
+
+{ #category : 'generated' }
+FridaDeviceManager >> getDeviceByType: type timeout: timeout cancellable: cancellable [
+	| cancellableHandle raw |
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self getDeviceByTypeBegin: type timeout: timeout cancellable: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self getDeviceByTypeFinish: asyncResult errorHolder: errorHolder ].
 	^ FridaDevice fromOwnedHandle: (raw)
 ]
 
@@ -93,9 +106,15 @@ FridaDeviceManager >> getDeviceByTypeFinish: asyncResult errorHolder: errorHolde
 ]
 
 { #category : 'generated' }
-FridaDeviceManager >> findDeviceById: id timeout: timeout [
-	| raw |
-	raw := self asyncCall: [ :onReady | self findDeviceByIdBegin: id timeout: timeout cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self findDeviceByIdFinish: asyncResult errorHolder: errorHolder ].
+FridaDeviceManager >> getDeviceByType: type timeout: timeout [
+	^ self getDeviceByType: type timeout: timeout cancellable: nil
+]
+
+{ #category : 'generated' }
+FridaDeviceManager >> findDeviceById: id timeout: timeout cancellable: cancellable [
+	| cancellableHandle raw |
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self findDeviceByIdBegin: id timeout: timeout cancellable: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self findDeviceByIdFinish: asyncResult errorHolder: errorHolder ].
 	^ FridaDevice fromOwnedHandle: (raw)
 ]
 
@@ -110,9 +129,15 @@ FridaDeviceManager >> findDeviceByIdFinish: asyncResult errorHolder: errorHolder
 ]
 
 { #category : 'generated' }
-FridaDeviceManager >> findDeviceByType: type timeout: timeout [
-	| raw |
-	raw := self asyncCall: [ :onReady | self findDeviceByTypeBegin: type timeout: timeout cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self findDeviceByTypeFinish: asyncResult errorHolder: errorHolder ].
+FridaDeviceManager >> findDeviceById: id timeout: timeout [
+	^ self findDeviceById: id timeout: timeout cancellable: nil
+]
+
+{ #category : 'generated' }
+FridaDeviceManager >> findDeviceByType: type timeout: timeout cancellable: cancellable [
+	| cancellableHandle raw |
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self findDeviceByTypeBegin: type timeout: timeout cancellable: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self findDeviceByTypeFinish: asyncResult errorHolder: errorHolder ].
 	^ FridaDevice fromOwnedHandle: (raw)
 ]
 
@@ -127,9 +152,15 @@ FridaDeviceManager >> findDeviceByTypeFinish: asyncResult errorHolder: errorHold
 ]
 
 { #category : 'generated' }
-FridaDeviceManager >> enumerateDevices [
-	| raw |
-	raw := self asyncCall: [ :onReady | self enumerateDevicesBegin: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self enumerateDevicesFinish: asyncResult errorHolder: errorHolder ].
+FridaDeviceManager >> findDeviceByType: type timeout: timeout [
+	^ self findDeviceByType: type timeout: timeout cancellable: nil
+]
+
+{ #category : 'generated' }
+FridaDeviceManager >> enumerateDevices: cancellable [
+	| cancellableHandle raw |
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self enumerateDevicesBegin: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self enumerateDevicesFinish: asyncResult errorHolder: errorHolder ].
 	^ (FridaDeviceList fromOwnedHandle: (raw)) asArray
 ]
 
@@ -144,11 +175,17 @@ FridaDeviceManager >> enumerateDevicesFinish: asyncResult errorHolder: errorHold
 ]
 
 { #category : 'generated' }
-FridaDeviceManager >> addRemoteDevice: address options: options [
-	| options0 marshalled0 raw |
+FridaDeviceManager >> enumerateDevices [
+	^ self enumerateDevices: nil
+]
+
+{ #category : 'generated' }
+FridaDeviceManager >> addRemoteDevice: address options: options cancellable: cancellable [
+	| options0 marshalled0 cancellableHandle raw |
 	options0 := options isNil ifTrue: [ nil ] ifFalse: [ FridaRemoteDeviceOptions configuredBy: options ].
 	marshalled0 := options0 isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options0 getHandle ].
-	raw := self asyncCall: [ :onReady | self addRemoteDeviceBegin: address marshalled0: marshalled0 cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self addRemoteDeviceFinish: asyncResult errorHolder: errorHolder ].
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self addRemoteDeviceBegin: address marshalled0: marshalled0 cancellable: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self addRemoteDeviceFinish: asyncResult errorHolder: errorHolder ].
 	^ FridaDevice fromOwnedHandle: (raw)
 ]
 
@@ -163,14 +200,20 @@ FridaDeviceManager >> addRemoteDeviceFinish: asyncResult errorHolder: errorHolde
 ]
 
 { #category : 'generated' }
-FridaDeviceManager >> addRemoteDevice: address [
-	^ self addRemoteDevice: address options: nil
+FridaDeviceManager >> addRemoteDevice: address options: options [
+	^ self addRemoteDevice: address options: options cancellable: nil
 ]
 
 { #category : 'generated' }
-FridaDeviceManager >> removeRemoteDevice: address [
-	| raw |
-	raw := self asyncCall: [ :onReady | self removeRemoteDeviceBegin: address cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self removeRemoteDeviceFinish: asyncResult errorHolder: errorHolder ].
+FridaDeviceManager >> addRemoteDevice: address [
+	^ self addRemoteDevice: address options: nil cancellable: nil
+]
+
+{ #category : 'generated' }
+FridaDeviceManager >> removeRemoteDevice: address cancellable: cancellable [
+	| cancellableHandle raw |
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self removeRemoteDeviceBegin: address cancellable: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self removeRemoteDeviceFinish: asyncResult errorHolder: errorHolder ].
 	^ self
 ]
 
@@ -182,6 +225,11 @@ FridaDeviceManager >> removeRemoteDeviceBegin: address cancellable: cancellable 
 { #category : 'generated' }
 FridaDeviceManager >> removeRemoteDeviceFinish: asyncResult errorHolder: errorHolder [
 	^ self ffiCall: #(void frida_device_manager_remove_remote_device_finish (self, void* asyncResult, void* errorHolder)) library: FridaLibrary
+]
+
+{ #category : 'generated' }
+FridaDeviceManager >> removeRemoteDevice: address [
+	^ self removeRemoteDevice: address cancellable: nil
 ]
 
 { #category : 'generated' }

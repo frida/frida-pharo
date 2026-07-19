@@ -14,9 +14,10 @@ FridaScript >> isDestroyed [
 ]
 
 { #category : 'generated' }
-FridaScript >> load [
-	| raw |
-	raw := self asyncCall: [ :onReady | self loadBegin: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self loadFinish: asyncResult errorHolder: errorHolder ].
+FridaScript >> load: cancellable [
+	| cancellableHandle raw |
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self loadBegin: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self loadFinish: asyncResult errorHolder: errorHolder ].
 	^ self
 ]
 
@@ -31,9 +32,15 @@ FridaScript >> loadFinish: asyncResult errorHolder: errorHolder [
 ]
 
 { #category : 'generated' }
-FridaScript >> interrupt [
-	| raw |
-	raw := self asyncCall: [ :onReady | self interruptBegin: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self interruptFinish: asyncResult errorHolder: errorHolder ].
+FridaScript >> load [
+	^ self load: nil
+]
+
+{ #category : 'generated' }
+FridaScript >> interrupt: cancellable [
+	| cancellableHandle raw |
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self interruptBegin: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self interruptFinish: asyncResult errorHolder: errorHolder ].
 	^ self
 ]
 
@@ -48,9 +55,15 @@ FridaScript >> interruptFinish: asyncResult errorHolder: errorHolder [
 ]
 
 { #category : 'generated' }
-FridaScript >> unload [
-	| raw |
-	raw := self asyncCall: [ :onReady | self unloadBegin: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self unloadFinish: asyncResult errorHolder: errorHolder ].
+FridaScript >> interrupt [
+	^ self interrupt: nil
+]
+
+{ #category : 'generated' }
+FridaScript >> unload: cancellable [
+	| cancellableHandle raw |
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self unloadBegin: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self unloadFinish: asyncResult errorHolder: errorHolder ].
 	^ self
 ]
 
@@ -65,9 +78,15 @@ FridaScript >> unloadFinish: asyncResult errorHolder: errorHolder [
 ]
 
 { #category : 'generated' }
-FridaScript >> terminate [
-	| raw |
-	raw := self asyncCall: [ :onReady | self terminateBegin: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self terminateFinish: asyncResult errorHolder: errorHolder ].
+FridaScript >> unload [
+	^ self unload: nil
+]
+
+{ #category : 'generated' }
+FridaScript >> terminate: cancellable [
+	| cancellableHandle raw |
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self terminateBegin: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self terminateFinish: asyncResult errorHolder: errorHolder ].
 	^ self
 ]
 
@@ -82,9 +101,15 @@ FridaScript >> terminateFinish: asyncResult errorHolder: errorHolder [
 ]
 
 { #category : 'generated' }
-FridaScript >> eternalize [
-	| raw |
-	raw := self asyncCall: [ :onReady | self eternalizeBegin: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self eternalizeFinish: asyncResult errorHolder: errorHolder ].
+FridaScript >> terminate [
+	^ self terminate: nil
+]
+
+{ #category : 'generated' }
+FridaScript >> eternalize: cancellable [
+	| cancellableHandle raw |
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self eternalizeBegin: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self eternalizeFinish: asyncResult errorHolder: errorHolder ].
 	^ self
 ]
 
@@ -96,6 +121,11 @@ FridaScript >> eternalizeBegin: cancellable onReady: onReady userData: userData 
 { #category : 'generated' }
 FridaScript >> eternalizeFinish: asyncResult errorHolder: errorHolder [
 	^ self ffiCall: #(void frida_script_eternalize_finish (self, void* asyncResult, void* errorHolder)) library: FridaLibrary
+]
+
+{ #category : 'generated' }
+FridaScript >> eternalize [
+	^ self eternalize: nil
 ]
 
 { #category : 'generated' }
@@ -113,9 +143,15 @@ FridaScript >> post: json data: data [
 ]
 
 { #category : 'generated' }
-FridaScript >> enableDebugger: port [
-	| raw |
-	raw := self asyncCall: [ :onReady | self enableDebuggerBegin: port cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self enableDebuggerFinish: asyncResult errorHolder: errorHolder ].
+FridaScript >> post: json [
+	^ self post: json data: nil
+]
+
+{ #category : 'generated' }
+FridaScript >> enableDebugger: port cancellable: cancellable [
+	| cancellableHandle raw |
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self enableDebuggerBegin: port cancellable: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self enableDebuggerFinish: asyncResult errorHolder: errorHolder ].
 	^ self
 ]
 
@@ -130,9 +166,15 @@ FridaScript >> enableDebuggerFinish: asyncResult errorHolder: errorHolder [
 ]
 
 { #category : 'generated' }
-FridaScript >> disableDebugger [
-	| raw |
-	raw := self asyncCall: [ :onReady | self disableDebuggerBegin: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self disableDebuggerFinish: asyncResult errorHolder: errorHolder ].
+FridaScript >> enableDebugger: port [
+	^ self enableDebugger: port cancellable: nil
+]
+
+{ #category : 'generated' }
+FridaScript >> disableDebugger: cancellable [
+	| cancellableHandle raw |
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self disableDebuggerBegin: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self disableDebuggerFinish: asyncResult errorHolder: errorHolder ].
 	^ self
 ]
 
@@ -144,6 +186,11 @@ FridaScript >> disableDebuggerBegin: cancellable onReady: onReady userData: user
 { #category : 'generated' }
 FridaScript >> disableDebuggerFinish: asyncResult errorHolder: errorHolder [
 	^ self ffiCall: #(void frida_script_disable_debugger_finish (self, void* asyncResult, void* errorHolder)) library: FridaLibrary
+]
+
+{ #category : 'generated' }
+FridaScript >> disableDebugger [
+	^ self disableDebugger: nil
 ]
 
 { #category : 'generated' }

@@ -20,11 +20,12 @@ FridaCompiler class >> new: manager [
 ]
 
 { #category : 'generated' }
-FridaCompiler >> build: entrypoint options: options [
-	| options0 marshalled0 raw |
+FridaCompiler >> build: entrypoint options: options cancellable: cancellable [
+	| options0 marshalled0 cancellableHandle raw |
 	options0 := options isNil ifTrue: [ nil ] ifFalse: [ FridaBuildOptions configuredBy: options ].
 	marshalled0 := options0 isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options0 getHandle ].
-	raw := self asyncCall: [ :onReady | self buildBegin: entrypoint marshalled0: marshalled0 cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self buildFinish: asyncResult errorHolder: errorHolder ].
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self buildBegin: entrypoint marshalled0: marshalled0 cancellable: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self buildFinish: asyncResult errorHolder: errorHolder ].
 	^ raw
 ]
 
@@ -39,16 +40,22 @@ FridaCompiler >> buildFinish: asyncResult errorHolder: errorHolder [
 ]
 
 { #category : 'generated' }
-FridaCompiler >> build: entrypoint [
-	^ self build: entrypoint options: nil
+FridaCompiler >> build: entrypoint options: options [
+	^ self build: entrypoint options: options cancellable: nil
 ]
 
 { #category : 'generated' }
-FridaCompiler >> watch: entrypoint options: options [
-	| options0 marshalled0 raw |
+FridaCompiler >> build: entrypoint [
+	^ self build: entrypoint options: nil cancellable: nil
+]
+
+{ #category : 'generated' }
+FridaCompiler >> watch: entrypoint options: options cancellable: cancellable [
+	| options0 marshalled0 cancellableHandle raw |
 	options0 := options isNil ifTrue: [ nil ] ifFalse: [ FridaWatchOptions configuredBy: options ].
 	marshalled0 := options0 isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options0 getHandle ].
-	raw := self asyncCall: [ :onReady | self watchBegin: entrypoint marshalled0: marshalled0 cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self watchFinish: asyncResult errorHolder: errorHolder ].
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self watchBegin: entrypoint marshalled0: marshalled0 cancellable: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self watchFinish: asyncResult errorHolder: errorHolder ].
 	^ self
 ]
 
@@ -63,8 +70,13 @@ FridaCompiler >> watchFinish: asyncResult errorHolder: errorHolder [
 ]
 
 { #category : 'generated' }
+FridaCompiler >> watch: entrypoint options: options [
+	^ self watch: entrypoint options: options cancellable: nil
+]
+
+{ #category : 'generated' }
 FridaCompiler >> watch: entrypoint [
-	^ self watch: entrypoint options: nil
+	^ self watch: entrypoint options: nil cancellable: nil
 ]
 
 { #category : 'generated' }

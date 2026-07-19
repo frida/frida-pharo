@@ -9,9 +9,10 @@ Class {
 }
 
 { #category : 'generated' }
-FridaInjector >> close [
-	| raw |
-	raw := self asyncCall: [ :onReady | self closeBegin: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self closeFinish: asyncResult errorHolder: errorHolder ].
+FridaInjector >> close: cancellable [
+	| cancellableHandle raw |
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self closeBegin: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self closeFinish: asyncResult errorHolder: errorHolder ].
 	^ self
 ]
 
@@ -26,9 +27,15 @@ FridaInjector >> closeFinish: asyncResult errorHolder: errorHolder [
 ]
 
 { #category : 'generated' }
-FridaInjector >> injectLibraryFile: pid path: path entrypoint: entrypoint data: data [
-	| raw |
-	raw := self asyncCall: [ :onReady | self injectLibraryFileBegin: pid path: path entrypoint: entrypoint data: data cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self injectLibraryFileFinish: asyncResult errorHolder: errorHolder ].
+FridaInjector >> close [
+	^ self close: nil
+]
+
+{ #category : 'generated' }
+FridaInjector >> injectLibraryFile: pid path: path entrypoint: entrypoint data: data cancellable: cancellable [
+	| cancellableHandle raw |
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self injectLibraryFileBegin: pid path: path entrypoint: entrypoint data: data cancellable: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self injectLibraryFileFinish: asyncResult errorHolder: errorHolder ].
 	^ raw
 ]
 
@@ -43,10 +50,16 @@ FridaInjector >> injectLibraryFileFinish: asyncResult errorHolder: errorHolder [
 ]
 
 { #category : 'generated' }
-FridaInjector >> injectLibraryBlob: pid blob: blob entrypoint: entrypoint data: data [
-	| marshalled0 raw |
+FridaInjector >> injectLibraryFile: pid path: path entrypoint: entrypoint data: data [
+	^ self injectLibraryFile: pid path: path entrypoint: entrypoint data: data cancellable: nil
+]
+
+{ #category : 'generated' }
+FridaInjector >> injectLibraryBlob: pid blob: blob entrypoint: entrypoint data: data cancellable: cancellable [
+	| marshalled0 cancellableHandle raw |
 	marshalled0 := self bytesFromByteArray: blob.
-	raw := self asyncCall: [ :onReady | self injectLibraryBlobBegin: pid marshalled0: marshalled0 entrypoint: entrypoint data: data cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self injectLibraryBlobFinish: asyncResult errorHolder: errorHolder ].
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self injectLibraryBlobBegin: pid marshalled0: marshalled0 entrypoint: entrypoint data: data cancellable: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self injectLibraryBlobFinish: asyncResult errorHolder: errorHolder ].
 	FridaGlue bytesUnref: marshalled0.
 	^ raw
 ]
@@ -62,9 +75,15 @@ FridaInjector >> injectLibraryBlobFinish: asyncResult errorHolder: errorHolder [
 ]
 
 { #category : 'generated' }
-FridaInjector >> demonitor: id [
-	| raw |
-	raw := self asyncCall: [ :onReady | self demonitorBegin: id cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self demonitorFinish: asyncResult errorHolder: errorHolder ].
+FridaInjector >> injectLibraryBlob: pid blob: blob entrypoint: entrypoint data: data [
+	^ self injectLibraryBlob: pid blob: blob entrypoint: entrypoint data: data cancellable: nil
+]
+
+{ #category : 'generated' }
+FridaInjector >> demonitor: id cancellable: cancellable [
+	| cancellableHandle raw |
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self demonitorBegin: id cancellable: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self demonitorFinish: asyncResult errorHolder: errorHolder ].
 	^ self
 ]
 
@@ -79,9 +98,15 @@ FridaInjector >> demonitorFinish: asyncResult errorHolder: errorHolder [
 ]
 
 { #category : 'generated' }
-FridaInjector >> demonitorAndCloneState: id [
-	| raw |
-	raw := self asyncCall: [ :onReady | self demonitorAndCloneStateBegin: id cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self demonitorAndCloneStateFinish: asyncResult errorHolder: errorHolder ].
+FridaInjector >> demonitor: id [
+	^ self demonitor: id cancellable: nil
+]
+
+{ #category : 'generated' }
+FridaInjector >> demonitorAndCloneState: id cancellable: cancellable [
+	| cancellableHandle raw |
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self demonitorAndCloneStateBegin: id cancellable: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self demonitorAndCloneStateFinish: asyncResult errorHolder: errorHolder ].
 	^ raw
 ]
 
@@ -96,9 +121,15 @@ FridaInjector >> demonitorAndCloneStateFinish: asyncResult errorHolder: errorHol
 ]
 
 { #category : 'generated' }
-FridaInjector >> recreateThread: pid id: id [
-	| raw |
-	raw := self asyncCall: [ :onReady | self recreateThreadBegin: pid id: id cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self recreateThreadFinish: asyncResult errorHolder: errorHolder ].
+FridaInjector >> demonitorAndCloneState: id [
+	^ self demonitorAndCloneState: id cancellable: nil
+]
+
+{ #category : 'generated' }
+FridaInjector >> recreateThread: pid id: id cancellable: cancellable [
+	| cancellableHandle raw |
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self recreateThreadBegin: pid id: id cancellable: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self recreateThreadFinish: asyncResult errorHolder: errorHolder ].
 	^ self
 ]
 
@@ -110,6 +141,11 @@ FridaInjector >> recreateThreadBegin: pid id: id cancellable: cancellable onRead
 { #category : 'generated' }
 FridaInjector >> recreateThreadFinish: asyncResult errorHolder: errorHolder [
 	^ self ffiCall: #(void frida_injector_recreate_thread_finish (self, void* asyncResult, void* errorHolder)) library: FridaLibrary
+]
+
+{ #category : 'generated' }
+FridaInjector >> recreateThread: pid id: id [
+	^ self recreateThread: pid id: id cancellable: nil
 ]
 
 { #category : 'generated' }

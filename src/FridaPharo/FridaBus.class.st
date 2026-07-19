@@ -14,9 +14,10 @@ FridaBus >> isDetached [
 ]
 
 { #category : 'generated' }
-FridaBus >> attach [
-	| raw |
-	raw := self asyncCall: [ :onReady | self attachBegin: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self attachFinish: asyncResult errorHolder: errorHolder ].
+FridaBus >> attach: cancellable [
+	| cancellableHandle raw |
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self attachBegin: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self attachFinish: asyncResult errorHolder: errorHolder ].
 	^ self
 ]
 
@@ -31,6 +32,11 @@ FridaBus >> attachFinish: asyncResult errorHolder: errorHolder [
 ]
 
 { #category : 'generated' }
+FridaBus >> attach [
+	^ self attach: nil
+]
+
+{ #category : 'generated' }
 FridaBus >> postRaw: json marshalled0: marshalled0 [
 	^ self ffiCall: #(void frida_bus_post (self, String json, void* marshalled0)) library: FridaLibrary
 ]
@@ -42,6 +48,11 @@ FridaBus >> post: json data: data [
 	result := self postRaw: json marshalled0: marshalled0.
 	FridaGlue bytesUnref: marshalled0.
 	^ self
+]
+
+{ #category : 'generated' }
+FridaBus >> post: json [
+	^ self post: json data: nil
 ]
 
 { #category : 'generated' }

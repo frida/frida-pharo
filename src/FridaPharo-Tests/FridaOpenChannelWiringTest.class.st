@@ -20,7 +20,7 @@ FridaOpenChannelWiringTest >> testDeviceUnderstandsOpenChannel [
 { #category : 'tests' }
 FridaOpenChannelWiringTest >> testGeneratedMethodWrapsAsIoStream [
 	| source |
-	source := (FridaDevice >> #openChannel:) sourceCode.
+	source := (FridaDevice >> #openChannel:cancellable:) sourceCode.
 	self assert: (source includesSubstring: 'FridaIOStream fromOwnedHandle:')
 ]
 

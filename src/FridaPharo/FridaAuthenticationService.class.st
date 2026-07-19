@@ -9,9 +9,10 @@ Class {
 }
 
 { #category : 'generated' }
-FridaAuthenticationService >> authenticate: token [
-	| raw |
-	raw := self asyncCall: [ :onReady | self authenticateBegin: token cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self authenticateFinish: asyncResult errorHolder: errorHolder ].
+FridaAuthenticationService >> authenticate: token cancellable: cancellable [
+	| cancellableHandle raw |
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self authenticateBegin: token cancellable: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self authenticateFinish: asyncResult errorHolder: errorHolder ].
 	^ raw
 ]
 
@@ -23,5 +24,10 @@ FridaAuthenticationService >> authenticateBegin: token cancellable: cancellable 
 { #category : 'generated' }
 FridaAuthenticationService >> authenticateFinish: asyncResult errorHolder: errorHolder [
 	^ self ffiCall: #(String frida_authentication_service_authenticate_finish (self, void* asyncResult, void* errorHolder)) library: FridaLibrary
+]
+
+{ #category : 'generated' }
+FridaAuthenticationService >> authenticate: token [
+	^ self authenticate: token cancellable: nil
 ]
 

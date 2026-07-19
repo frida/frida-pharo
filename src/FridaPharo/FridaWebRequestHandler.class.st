@@ -9,10 +9,11 @@ Class {
 }
 
 { #category : 'generated' }
-FridaWebRequestHandler >> handleRequest: request [
-	| marshalled0 raw |
+FridaWebRequestHandler >> handleRequest: request cancellable: cancellable [
+	| marshalled0 cancellableHandle raw |
 	marshalled0 := request isNil ifTrue: [ ExternalAddress null ] ifFalse: [ request getHandle ].
-	raw := self asyncCall: [ :onReady | self handleRequestBegin: marshalled0 cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self handleRequestFinish: asyncResult errorHolder: errorHolder ].
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self handleRequestBegin: marshalled0 cancellable: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self handleRequestFinish: asyncResult errorHolder: errorHolder ].
 	^ FridaWebResponse fromOwnedHandle: (raw)
 ]
 
@@ -24,5 +25,10 @@ FridaWebRequestHandler >> handleRequestBegin: marshalled0 cancellable: cancellab
 { #category : 'generated' }
 FridaWebRequestHandler >> handleRequestFinish: asyncResult errorHolder: errorHolder [
 	^ self ffiCall: #(void* frida_web_request_handler_handle_request_finish (self, void* asyncResult, void* errorHolder)) library: FridaLibrary
+]
+
+{ #category : 'generated' }
+FridaWebRequestHandler >> handleRequest: request [
+	^ self handleRequest: request cancellable: nil
 ]
 

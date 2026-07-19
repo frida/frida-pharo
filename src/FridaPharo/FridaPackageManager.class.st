@@ -36,11 +36,12 @@ FridaPackageManager >> registry: aValue [
 ]
 
 { #category : 'generated' }
-FridaPackageManager >> search: query options: options [
-	| options0 marshalled0 raw |
+FridaPackageManager >> search: query options: options cancellable: cancellable [
+	| options0 marshalled0 cancellableHandle raw |
 	options0 := options isNil ifTrue: [ nil ] ifFalse: [ FridaPackageSearchOptions configuredBy: options ].
 	marshalled0 := options0 isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options0 getHandle ].
-	raw := self asyncCall: [ :onReady | self searchBegin: query marshalled0: marshalled0 cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self searchFinish: asyncResult errorHolder: errorHolder ].
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self searchBegin: query marshalled0: marshalled0 cancellable: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self searchFinish: asyncResult errorHolder: errorHolder ].
 	^ FridaPackageSearchResult fromHandle: (raw) owned: true
 ]
 
@@ -55,16 +56,22 @@ FridaPackageManager >> searchFinish: asyncResult errorHolder: errorHolder [
 ]
 
 { #category : 'generated' }
-FridaPackageManager >> search: query [
-	^ self search: query options: nil
+FridaPackageManager >> search: query options: options [
+	^ self search: query options: options cancellable: nil
 ]
 
 { #category : 'generated' }
-FridaPackageManager >> install: options [
-	| options0 marshalled0 raw |
+FridaPackageManager >> search: query [
+	^ self search: query options: nil cancellable: nil
+]
+
+{ #category : 'generated' }
+FridaPackageManager >> install: options cancellable: cancellable [
+	| options0 marshalled0 cancellableHandle raw |
 	options0 := options isNil ifTrue: [ nil ] ifFalse: [ FridaPackageInstallOptions configuredBy: options ].
 	marshalled0 := options0 isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options0 getHandle ].
-	raw := self asyncCall: [ :onReady | self installBegin: marshalled0 cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self installFinish: asyncResult errorHolder: errorHolder ].
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self installBegin: marshalled0 cancellable: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self installFinish: asyncResult errorHolder: errorHolder ].
 	^ FridaPackageInstallResult fromHandle: (raw) owned: true
 ]
 
@@ -79,8 +86,13 @@ FridaPackageManager >> installFinish: asyncResult errorHolder: errorHolder [
 ]
 
 { #category : 'generated' }
+FridaPackageManager >> install: options [
+	^ self install: options cancellable: nil
+]
+
+{ #category : 'generated' }
 FridaPackageManager >> install [
-	^ self install: nil
+	^ self install: nil cancellable: nil
 ]
 
 { #category : 'generated' }

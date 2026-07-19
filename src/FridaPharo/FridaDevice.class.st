@@ -69,9 +69,10 @@ FridaDevice >> overrideOption: name val: val [
 ]
 
 { #category : 'generated' }
-FridaDevice >> querySystemParameters [
-	| raw |
-	raw := self asyncCall: [ :onReady | self querySystemParametersBegin: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self querySystemParametersFinish: asyncResult errorHolder: errorHolder ].
+FridaDevice >> querySystemParameters: cancellable [
+	| cancellableHandle raw |
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self querySystemParametersBegin: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self querySystemParametersFinish: asyncResult errorHolder: errorHolder ].
 	^ FridaObject dictFromVardict: (raw) owned: true
 ]
 
@@ -86,11 +87,17 @@ FridaDevice >> querySystemParametersFinish: asyncResult errorHolder: errorHolder
 ]
 
 { #category : 'generated' }
-FridaDevice >> getFrontmostApplication: options [
-	| options0 marshalled0 raw |
+FridaDevice >> querySystemParameters [
+	^ self querySystemParameters: nil
+]
+
+{ #category : 'generated' }
+FridaDevice >> getFrontmostApplication: options cancellable: cancellable [
+	| options0 marshalled0 cancellableHandle raw |
 	options0 := options isNil ifTrue: [ nil ] ifFalse: [ FridaFrontmostQueryOptions configuredBy: options ].
 	marshalled0 := options0 isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options0 getHandle ].
-	raw := self asyncCall: [ :onReady | self getFrontmostApplicationBegin: marshalled0 cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self getFrontmostApplicationFinish: asyncResult errorHolder: errorHolder ].
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self getFrontmostApplicationBegin: marshalled0 cancellable: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self getFrontmostApplicationFinish: asyncResult errorHolder: errorHolder ].
 	^ FridaApplication fromHandle: (raw) owned: true
 ]
 
@@ -105,16 +112,22 @@ FridaDevice >> getFrontmostApplicationFinish: asyncResult errorHolder: errorHold
 ]
 
 { #category : 'generated' }
-FridaDevice >> getFrontmostApplication [
-	^ self getFrontmostApplication: nil
+FridaDevice >> getFrontmostApplication: options [
+	^ self getFrontmostApplication: options cancellable: nil
 ]
 
 { #category : 'generated' }
-FridaDevice >> enumerateApplications: options [
-	| options0 marshalled0 raw |
+FridaDevice >> getFrontmostApplication [
+	^ self getFrontmostApplication: nil cancellable: nil
+]
+
+{ #category : 'generated' }
+FridaDevice >> enumerateApplications: options cancellable: cancellable [
+	| options0 marshalled0 cancellableHandle raw |
 	options0 := options isNil ifTrue: [ nil ] ifFalse: [ FridaApplicationQueryOptions configuredBy: options ].
 	marshalled0 := options0 isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options0 getHandle ].
-	raw := self asyncCall: [ :onReady | self enumerateApplicationsBegin: marshalled0 cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self enumerateApplicationsFinish: asyncResult errorHolder: errorHolder ].
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self enumerateApplicationsBegin: marshalled0 cancellable: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self enumerateApplicationsFinish: asyncResult errorHolder: errorHolder ].
 	^ (FridaApplicationList fromOwnedHandle: (raw)) asArray
 ]
 
@@ -129,16 +142,22 @@ FridaDevice >> enumerateApplicationsFinish: asyncResult errorHolder: errorHolder
 ]
 
 { #category : 'generated' }
-FridaDevice >> enumerateApplications [
-	^ self enumerateApplications: nil
+FridaDevice >> enumerateApplications: options [
+	^ self enumerateApplications: options cancellable: nil
 ]
 
 { #category : 'generated' }
-FridaDevice >> getProcessByPid: pid options: options [
-	| options0 marshalled0 raw |
+FridaDevice >> enumerateApplications [
+	^ self enumerateApplications: nil cancellable: nil
+]
+
+{ #category : 'generated' }
+FridaDevice >> getProcessByPid: pid options: options cancellable: cancellable [
+	| options0 marshalled0 cancellableHandle raw |
 	options0 := options isNil ifTrue: [ nil ] ifFalse: [ FridaProcessMatchOptions configuredBy: options ].
 	marshalled0 := options0 isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options0 getHandle ].
-	raw := self asyncCall: [ :onReady | self getProcessByPidBegin: pid marshalled0: marshalled0 cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self getProcessByPidFinish: asyncResult errorHolder: errorHolder ].
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self getProcessByPidBegin: pid marshalled0: marshalled0 cancellable: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self getProcessByPidFinish: asyncResult errorHolder: errorHolder ].
 	^ FridaProcess fromHandle: (raw) owned: true
 ]
 
@@ -153,16 +172,22 @@ FridaDevice >> getProcessByPidFinish: asyncResult errorHolder: errorHolder [
 ]
 
 { #category : 'generated' }
-FridaDevice >> getProcessByPid: pid [
-	^ self getProcessByPid: pid options: nil
+FridaDevice >> getProcessByPid: pid options: options [
+	^ self getProcessByPid: pid options: options cancellable: nil
 ]
 
 { #category : 'generated' }
-FridaDevice >> getProcessByName: name options: options [
-	| options0 marshalled0 raw |
+FridaDevice >> getProcessByPid: pid [
+	^ self getProcessByPid: pid options: nil cancellable: nil
+]
+
+{ #category : 'generated' }
+FridaDevice >> getProcessByName: name options: options cancellable: cancellable [
+	| options0 marshalled0 cancellableHandle raw |
 	options0 := options isNil ifTrue: [ nil ] ifFalse: [ FridaProcessMatchOptions configuredBy: options ].
 	marshalled0 := options0 isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options0 getHandle ].
-	raw := self asyncCall: [ :onReady | self getProcessByNameBegin: name marshalled0: marshalled0 cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self getProcessByNameFinish: asyncResult errorHolder: errorHolder ].
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self getProcessByNameBegin: name marshalled0: marshalled0 cancellable: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self getProcessByNameFinish: asyncResult errorHolder: errorHolder ].
 	^ FridaProcess fromHandle: (raw) owned: true
 ]
 
@@ -177,16 +202,22 @@ FridaDevice >> getProcessByNameFinish: asyncResult errorHolder: errorHolder [
 ]
 
 { #category : 'generated' }
-FridaDevice >> getProcessByName: name [
-	^ self getProcessByName: name options: nil
+FridaDevice >> getProcessByName: name options: options [
+	^ self getProcessByName: name options: options cancellable: nil
 ]
 
 { #category : 'generated' }
-FridaDevice >> findProcessByPid: pid options: options [
-	| options0 marshalled0 raw |
+FridaDevice >> getProcessByName: name [
+	^ self getProcessByName: name options: nil cancellable: nil
+]
+
+{ #category : 'generated' }
+FridaDevice >> findProcessByPid: pid options: options cancellable: cancellable [
+	| options0 marshalled0 cancellableHandle raw |
 	options0 := options isNil ifTrue: [ nil ] ifFalse: [ FridaProcessMatchOptions configuredBy: options ].
 	marshalled0 := options0 isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options0 getHandle ].
-	raw := self asyncCall: [ :onReady | self findProcessByPidBegin: pid marshalled0: marshalled0 cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self findProcessByPidFinish: asyncResult errorHolder: errorHolder ].
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self findProcessByPidBegin: pid marshalled0: marshalled0 cancellable: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self findProcessByPidFinish: asyncResult errorHolder: errorHolder ].
 	^ FridaProcess fromHandle: (raw) owned: true
 ]
 
@@ -201,16 +232,22 @@ FridaDevice >> findProcessByPidFinish: asyncResult errorHolder: errorHolder [
 ]
 
 { #category : 'generated' }
-FridaDevice >> findProcessByPid: pid [
-	^ self findProcessByPid: pid options: nil
+FridaDevice >> findProcessByPid: pid options: options [
+	^ self findProcessByPid: pid options: options cancellable: nil
 ]
 
 { #category : 'generated' }
-FridaDevice >> findProcessByName: name options: options [
-	| options0 marshalled0 raw |
+FridaDevice >> findProcessByPid: pid [
+	^ self findProcessByPid: pid options: nil cancellable: nil
+]
+
+{ #category : 'generated' }
+FridaDevice >> findProcessByName: name options: options cancellable: cancellable [
+	| options0 marshalled0 cancellableHandle raw |
 	options0 := options isNil ifTrue: [ nil ] ifFalse: [ FridaProcessMatchOptions configuredBy: options ].
 	marshalled0 := options0 isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options0 getHandle ].
-	raw := self asyncCall: [ :onReady | self findProcessByNameBegin: name marshalled0: marshalled0 cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self findProcessByNameFinish: asyncResult errorHolder: errorHolder ].
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self findProcessByNameBegin: name marshalled0: marshalled0 cancellable: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self findProcessByNameFinish: asyncResult errorHolder: errorHolder ].
 	^ FridaProcess fromHandle: (raw) owned: true
 ]
 
@@ -225,16 +262,22 @@ FridaDevice >> findProcessByNameFinish: asyncResult errorHolder: errorHolder [
 ]
 
 { #category : 'generated' }
-FridaDevice >> findProcessByName: name [
-	^ self findProcessByName: name options: nil
+FridaDevice >> findProcessByName: name options: options [
+	^ self findProcessByName: name options: options cancellable: nil
 ]
 
 { #category : 'generated' }
-FridaDevice >> enumerateProcesses: options [
-	| options0 marshalled0 raw |
+FridaDevice >> findProcessByName: name [
+	^ self findProcessByName: name options: nil cancellable: nil
+]
+
+{ #category : 'generated' }
+FridaDevice >> enumerateProcesses: options cancellable: cancellable [
+	| options0 marshalled0 cancellableHandle raw |
 	options0 := options isNil ifTrue: [ nil ] ifFalse: [ FridaProcessQueryOptions configuredBy: options ].
 	marshalled0 := options0 isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options0 getHandle ].
-	raw := self asyncCall: [ :onReady | self enumerateProcessesBegin: marshalled0 cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self enumerateProcessesFinish: asyncResult errorHolder: errorHolder ].
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self enumerateProcessesBegin: marshalled0 cancellable: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self enumerateProcessesFinish: asyncResult errorHolder: errorHolder ].
 	^ (FridaProcessList fromOwnedHandle: (raw)) asArray
 ]
 
@@ -249,16 +292,22 @@ FridaDevice >> enumerateProcessesFinish: asyncResult errorHolder: errorHolder [
 ]
 
 { #category : 'generated' }
-FridaDevice >> enumerateProcesses [
-	^ self enumerateProcesses: nil
+FridaDevice >> enumerateProcesses: options [
+	^ self enumerateProcesses: options cancellable: nil
 ]
 
 { #category : 'generated' }
-FridaDevice >> enableSpawnGating: options [
-	| options0 marshalled0 raw |
+FridaDevice >> enumerateProcesses [
+	^ self enumerateProcesses: nil cancellable: nil
+]
+
+{ #category : 'generated' }
+FridaDevice >> enableSpawnGating: options cancellable: cancellable [
+	| options0 marshalled0 cancellableHandle raw |
 	options0 := options isNil ifTrue: [ nil ] ifFalse: [ FridaSpawnGatingOptions configuredBy: options ].
 	marshalled0 := options0 isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options0 getHandle ].
-	raw := self asyncCall: [ :onReady | self enableSpawnGatingBegin: marshalled0 cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self enableSpawnGatingFinish: asyncResult errorHolder: errorHolder ].
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self enableSpawnGatingBegin: marshalled0 cancellable: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self enableSpawnGatingFinish: asyncResult errorHolder: errorHolder ].
 	^ self
 ]
 
@@ -273,14 +322,20 @@ FridaDevice >> enableSpawnGatingFinish: asyncResult errorHolder: errorHolder [
 ]
 
 { #category : 'generated' }
-FridaDevice >> enableSpawnGating [
-	^ self enableSpawnGating: nil
+FridaDevice >> enableSpawnGating: options [
+	^ self enableSpawnGating: options cancellable: nil
 ]
 
 { #category : 'generated' }
-FridaDevice >> disableSpawnGating [
-	| raw |
-	raw := self asyncCall: [ :onReady | self disableSpawnGatingBegin: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self disableSpawnGatingFinish: asyncResult errorHolder: errorHolder ].
+FridaDevice >> enableSpawnGating [
+	^ self enableSpawnGating: nil cancellable: nil
+]
+
+{ #category : 'generated' }
+FridaDevice >> disableSpawnGating: cancellable [
+	| cancellableHandle raw |
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self disableSpawnGatingBegin: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self disableSpawnGatingFinish: asyncResult errorHolder: errorHolder ].
 	^ self
 ]
 
@@ -295,9 +350,15 @@ FridaDevice >> disableSpawnGatingFinish: asyncResult errorHolder: errorHolder [
 ]
 
 { #category : 'generated' }
-FridaDevice >> enumeratePendingSpawn [
-	| raw |
-	raw := self asyncCall: [ :onReady | self enumeratePendingSpawnBegin: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self enumeratePendingSpawnFinish: asyncResult errorHolder: errorHolder ].
+FridaDevice >> disableSpawnGating [
+	^ self disableSpawnGating: nil
+]
+
+{ #category : 'generated' }
+FridaDevice >> enumeratePendingSpawn: cancellable [
+	| cancellableHandle raw |
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self enumeratePendingSpawnBegin: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self enumeratePendingSpawnFinish: asyncResult errorHolder: errorHolder ].
 	^ (FridaSpawnList fromOwnedHandle: (raw)) asArray
 ]
 
@@ -312,9 +373,15 @@ FridaDevice >> enumeratePendingSpawnFinish: asyncResult errorHolder: errorHolder
 ]
 
 { #category : 'generated' }
-FridaDevice >> enumeratePendingChildren [
-	| raw |
-	raw := self asyncCall: [ :onReady | self enumeratePendingChildrenBegin: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self enumeratePendingChildrenFinish: asyncResult errorHolder: errorHolder ].
+FridaDevice >> enumeratePendingSpawn [
+	^ self enumeratePendingSpawn: nil
+]
+
+{ #category : 'generated' }
+FridaDevice >> enumeratePendingChildren: cancellable [
+	| cancellableHandle raw |
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self enumeratePendingChildrenBegin: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self enumeratePendingChildrenFinish: asyncResult errorHolder: errorHolder ].
 	^ (FridaChildList fromOwnedHandle: (raw)) asArray
 ]
 
@@ -329,11 +396,17 @@ FridaDevice >> enumeratePendingChildrenFinish: asyncResult errorHolder: errorHol
 ]
 
 { #category : 'generated' }
-FridaDevice >> spawn: program options: options [
-	| options0 marshalled0 raw |
+FridaDevice >> enumeratePendingChildren [
+	^ self enumeratePendingChildren: nil
+]
+
+{ #category : 'generated' }
+FridaDevice >> spawn: program options: options cancellable: cancellable [
+	| options0 marshalled0 cancellableHandle raw |
 	options0 := options isNil ifTrue: [ nil ] ifFalse: [ FridaSpawnOptions configuredBy: options ].
 	marshalled0 := options0 isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options0 getHandle ].
-	raw := self asyncCall: [ :onReady | self spawnBegin: program marshalled0: marshalled0 cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self spawnFinish: asyncResult errorHolder: errorHolder ].
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self spawnBegin: program marshalled0: marshalled0 cancellable: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self spawnFinish: asyncResult errorHolder: errorHolder ].
 	^ raw
 ]
 
@@ -348,15 +421,21 @@ FridaDevice >> spawnFinish: asyncResult errorHolder: errorHolder [
 ]
 
 { #category : 'generated' }
-FridaDevice >> spawn: program [
-	^ self spawn: program options: nil
+FridaDevice >> spawn: program options: options [
+	^ self spawn: program options: options cancellable: nil
 ]
 
 { #category : 'generated' }
-FridaDevice >> input: pid data: data [
-	| marshalled0 raw |
+FridaDevice >> spawn: program [
+	^ self spawn: program options: nil cancellable: nil
+]
+
+{ #category : 'generated' }
+FridaDevice >> input: pid data: data cancellable: cancellable [
+	| marshalled0 cancellableHandle raw |
 	marshalled0 := self bytesFromByteArray: data.
-	raw := self asyncCall: [ :onReady | self inputBegin: pid marshalled0: marshalled0 cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self inputFinish: asyncResult errorHolder: errorHolder ].
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self inputBegin: pid marshalled0: marshalled0 cancellable: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self inputFinish: asyncResult errorHolder: errorHolder ].
 	FridaGlue bytesUnref: marshalled0.
 	^ self
 ]
@@ -372,9 +451,15 @@ FridaDevice >> inputFinish: asyncResult errorHolder: errorHolder [
 ]
 
 { #category : 'generated' }
-FridaDevice >> resume: pid [
-	| raw |
-	raw := self asyncCall: [ :onReady | self resumeBegin: pid cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self resumeFinish: asyncResult errorHolder: errorHolder ].
+FridaDevice >> input: pid data: data [
+	^ self input: pid data: data cancellable: nil
+]
+
+{ #category : 'generated' }
+FridaDevice >> resume: pid cancellable: cancellable [
+	| cancellableHandle raw |
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self resumeBegin: pid cancellable: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self resumeFinish: asyncResult errorHolder: errorHolder ].
 	^ self
 ]
 
@@ -389,9 +474,15 @@ FridaDevice >> resumeFinish: asyncResult errorHolder: errorHolder [
 ]
 
 { #category : 'generated' }
-FridaDevice >> kill: pid [
-	| raw |
-	raw := self asyncCall: [ :onReady | self killBegin: pid cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self killFinish: asyncResult errorHolder: errorHolder ].
+FridaDevice >> resume: pid [
+	^ self resume: pid cancellable: nil
+]
+
+{ #category : 'generated' }
+FridaDevice >> kill: pid cancellable: cancellable [
+	| cancellableHandle raw |
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self killBegin: pid cancellable: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self killFinish: asyncResult errorHolder: errorHolder ].
 	^ self
 ]
 
@@ -406,11 +497,17 @@ FridaDevice >> killFinish: asyncResult errorHolder: errorHolder [
 ]
 
 { #category : 'generated' }
-FridaDevice >> attach: pid options: options [
-	| options0 marshalled0 raw |
+FridaDevice >> kill: pid [
+	^ self kill: pid cancellable: nil
+]
+
+{ #category : 'generated' }
+FridaDevice >> attach: pid options: options cancellable: cancellable [
+	| options0 marshalled0 cancellableHandle raw |
 	options0 := options isNil ifTrue: [ nil ] ifFalse: [ FridaSessionOptions configuredBy: options ].
 	marshalled0 := options0 isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options0 getHandle ].
-	raw := self asyncCall: [ :onReady | self attachBegin: pid marshalled0: marshalled0 cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self attachFinish: asyncResult errorHolder: errorHolder ].
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self attachBegin: pid marshalled0: marshalled0 cancellable: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self attachFinish: asyncResult errorHolder: errorHolder ].
 	^ FridaSession fromOwnedHandle: (raw)
 ]
 
@@ -425,14 +522,20 @@ FridaDevice >> attachFinish: asyncResult errorHolder: errorHolder [
 ]
 
 { #category : 'generated' }
-FridaDevice >> attach: pid [
-	^ self attach: pid options: nil
+FridaDevice >> attach: pid options: options [
+	^ self attach: pid options: options cancellable: nil
 ]
 
 { #category : 'generated' }
-FridaDevice >> injectLibraryFile: pid path: path entrypoint: entrypoint data: data [
-	| raw |
-	raw := self asyncCall: [ :onReady | self injectLibraryFileBegin: pid path: path entrypoint: entrypoint data: data cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self injectLibraryFileFinish: asyncResult errorHolder: errorHolder ].
+FridaDevice >> attach: pid [
+	^ self attach: pid options: nil cancellable: nil
+]
+
+{ #category : 'generated' }
+FridaDevice >> injectLibraryFile: pid path: path entrypoint: entrypoint data: data cancellable: cancellable [
+	| cancellableHandle raw |
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self injectLibraryFileBegin: pid path: path entrypoint: entrypoint data: data cancellable: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self injectLibraryFileFinish: asyncResult errorHolder: errorHolder ].
 	^ raw
 ]
 
@@ -447,10 +550,16 @@ FridaDevice >> injectLibraryFileFinish: asyncResult errorHolder: errorHolder [
 ]
 
 { #category : 'generated' }
-FridaDevice >> injectLibraryBlob: pid blob: blob entrypoint: entrypoint data: data [
-	| marshalled0 raw |
+FridaDevice >> injectLibraryFile: pid path: path entrypoint: entrypoint data: data [
+	^ self injectLibraryFile: pid path: path entrypoint: entrypoint data: data cancellable: nil
+]
+
+{ #category : 'generated' }
+FridaDevice >> injectLibraryBlob: pid blob: blob entrypoint: entrypoint data: data cancellable: cancellable [
+	| marshalled0 cancellableHandle raw |
 	marshalled0 := self bytesFromByteArray: blob.
-	raw := self asyncCall: [ :onReady | self injectLibraryBlobBegin: pid marshalled0: marshalled0 entrypoint: entrypoint data: data cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self injectLibraryBlobFinish: asyncResult errorHolder: errorHolder ].
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self injectLibraryBlobBegin: pid marshalled0: marshalled0 entrypoint: entrypoint data: data cancellable: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self injectLibraryBlobFinish: asyncResult errorHolder: errorHolder ].
 	FridaGlue bytesUnref: marshalled0.
 	^ raw
 ]
@@ -466,9 +575,15 @@ FridaDevice >> injectLibraryBlobFinish: asyncResult errorHolder: errorHolder [
 ]
 
 { #category : 'generated' }
-FridaDevice >> openChannel: address [
-	| raw |
-	raw := self asyncCall: [ :onReady | self openChannelBegin: address cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self openChannelFinish: asyncResult errorHolder: errorHolder ].
+FridaDevice >> injectLibraryBlob: pid blob: blob entrypoint: entrypoint data: data [
+	^ self injectLibraryBlob: pid blob: blob entrypoint: entrypoint data: data cancellable: nil
+]
+
+{ #category : 'generated' }
+FridaDevice >> openChannel: address cancellable: cancellable [
+	| cancellableHandle raw |
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self openChannelBegin: address cancellable: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self openChannelFinish: asyncResult errorHolder: errorHolder ].
 	^ FridaIOStream fromOwnedHandle: (raw)
 ]
 
@@ -483,9 +598,15 @@ FridaDevice >> openChannelFinish: asyncResult errorHolder: errorHolder [
 ]
 
 { #category : 'generated' }
-FridaDevice >> openService: address [
-	| raw |
-	raw := self asyncCall: [ :onReady | self openServiceBegin: address cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self openServiceFinish: asyncResult errorHolder: errorHolder ].
+FridaDevice >> openChannel: address [
+	^ self openChannel: address cancellable: nil
+]
+
+{ #category : 'generated' }
+FridaDevice >> openService: address cancellable: cancellable [
+	| cancellableHandle raw |
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self openServiceBegin: address cancellable: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self openServiceFinish: asyncResult errorHolder: errorHolder ].
 	^ FridaService fromOwnedHandle: (raw)
 ]
 
@@ -500,9 +621,15 @@ FridaDevice >> openServiceFinish: asyncResult errorHolder: errorHolder [
 ]
 
 { #category : 'generated' }
-FridaDevice >> unpair [
-	| raw |
-	raw := self asyncCall: [ :onReady | self unpairBegin: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self unpairFinish: asyncResult errorHolder: errorHolder ].
+FridaDevice >> openService: address [
+	^ self openService: address cancellable: nil
+]
+
+{ #category : 'generated' }
+FridaDevice >> unpair: cancellable [
+	| cancellableHandle raw |
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self unpairBegin: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self unpairFinish: asyncResult errorHolder: errorHolder ].
 	^ self
 ]
 
@@ -514,6 +641,11 @@ FridaDevice >> unpairBegin: cancellable onReady: onReady userData: userData [
 { #category : 'generated' }
 FridaDevice >> unpairFinish: asyncResult errorHolder: errorHolder [
 	^ self ffiCall: #(void frida_device_unpair_finish (self, void* asyncResult, void* errorHolder)) library: FridaLibrary
+]
+
+{ #category : 'generated' }
+FridaDevice >> unpair [
+	^ self unpair: nil
 ]
 
 { #category : 'generated' }

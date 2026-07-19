@@ -84,9 +84,10 @@ FridaPortalService >> addControlEndpoint: endpointParams [
 ]
 
 { #category : 'generated' }
-FridaPortalService >> start [
-	| raw |
-	raw := self asyncCall: [ :onReady | self startBegin: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self startFinish: asyncResult errorHolder: errorHolder ].
+FridaPortalService >> start: cancellable [
+	| cancellableHandle raw |
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self startBegin: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self startFinish: asyncResult errorHolder: errorHolder ].
 	^ self
 ]
 
@@ -101,9 +102,15 @@ FridaPortalService >> startFinish: asyncResult errorHolder: errorHolder [
 ]
 
 { #category : 'generated' }
-FridaPortalService >> stop [
-	| raw |
-	raw := self asyncCall: [ :onReady | self stopBegin: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self stopFinish: asyncResult errorHolder: errorHolder ].
+FridaPortalService >> start [
+	^ self start: nil
+]
+
+{ #category : 'generated' }
+FridaPortalService >> stop: cancellable [
+	| cancellableHandle raw |
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self stopBegin: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self stopFinish: asyncResult errorHolder: errorHolder ].
 	^ self
 ]
 
@@ -115,6 +122,11 @@ FridaPortalService >> stopBegin: cancellable onReady: onReady userData: userData
 { #category : 'generated' }
 FridaPortalService >> stopFinish: asyncResult errorHolder: errorHolder [
 	^ self ffiCall: #(void frida_portal_service_stop_finish (self, void* asyncResult, void* errorHolder)) library: FridaLibrary
+]
+
+{ #category : 'generated' }
+FridaPortalService >> stop [
+	^ self stop: nil
 ]
 
 { #category : 'generated' }
@@ -137,6 +149,11 @@ FridaPortalService >> post: connectionId json: json data: data [
 ]
 
 { #category : 'generated' }
+FridaPortalService >> post: connectionId json: json [
+	^ self post: connectionId json: json data: nil
+]
+
+{ #category : 'generated' }
 FridaPortalService >> narrowcastRaw: tag json: json marshalled0: marshalled0 [
 	^ self ffiCall: #(void frida_portal_service_narrowcast (self, String tag, String json, void* marshalled0)) library: FridaLibrary
 ]
@@ -151,6 +168,11 @@ FridaPortalService >> narrowcast: tag json: json data: data [
 ]
 
 { #category : 'generated' }
+FridaPortalService >> narrowcast: tag json: json [
+	^ self narrowcast: tag json: json data: nil
+]
+
+{ #category : 'generated' }
 FridaPortalService >> broadcastRaw: json marshalled0: marshalled0 [
 	^ self ffiCall: #(void frida_portal_service_broadcast (self, String json, void* marshalled0)) library: FridaLibrary
 ]
@@ -162,6 +184,11 @@ FridaPortalService >> broadcast: json data: data [
 	result := self broadcastRaw: json marshalled0: marshalled0.
 	FridaGlue bytesUnref: marshalled0.
 	^ self
+]
+
+{ #category : 'generated' }
+FridaPortalService >> broadcast: json [
+	^ self broadcast: json data: nil
 ]
 
 { #category : 'generated' }

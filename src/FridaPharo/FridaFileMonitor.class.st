@@ -25,9 +25,10 @@ FridaFileMonitor >> path [
 ]
 
 { #category : 'generated' }
-FridaFileMonitor >> enable [
-	| raw |
-	raw := self asyncCall: [ :onReady | self enableBegin: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self enableFinish: asyncResult errorHolder: errorHolder ].
+FridaFileMonitor >> enable: cancellable [
+	| cancellableHandle raw |
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self enableBegin: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self enableFinish: asyncResult errorHolder: errorHolder ].
 	^ self
 ]
 
@@ -42,9 +43,15 @@ FridaFileMonitor >> enableFinish: asyncResult errorHolder: errorHolder [
 ]
 
 { #category : 'generated' }
-FridaFileMonitor >> disable [
-	| raw |
-	raw := self asyncCall: [ :onReady | self disableBegin: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self disableFinish: asyncResult errorHolder: errorHolder ].
+FridaFileMonitor >> enable [
+	^ self enable: nil
+]
+
+{ #category : 'generated' }
+FridaFileMonitor >> disable: cancellable [
+	| cancellableHandle raw |
+	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
+	raw := self asyncCall: [ :onReady | self disableBegin: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self disableFinish: asyncResult errorHolder: errorHolder ].
 	^ self
 ]
 
@@ -56,5 +63,10 @@ FridaFileMonitor >> disableBegin: cancellable onReady: onReady userData: userDat
 { #category : 'generated' }
 FridaFileMonitor >> disableFinish: asyncResult errorHolder: errorHolder [
 	^ self ffiCall: #(void frida_file_monitor_disable_finish (self, void* asyncResult, void* errorHolder)) library: FridaLibrary
+]
+
+{ #category : 'generated' }
+FridaFileMonitor >> disable [
+	^ self disable: nil
 ]
 
