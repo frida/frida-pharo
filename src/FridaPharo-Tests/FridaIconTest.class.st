@@ -22,3 +22,14 @@ FridaIconTest >> testRgbaAsForm [
 	self assert: (form pixelValueAt: 0 @ 0) equals: 16rFFFF0000.
 	self assert: (form pixelValueAt: 1 @ 0) equals: 16rFF00FF00
 ]
+
+{ #category : 'tests' }
+FridaIconTest >> testPngDictionaryOmitsDimensions [
+	"A png icon carries only the encoded bytes; width/height are absent."
+	| icon |
+	icon := FridaIcon fromDictionary: {
+		'format' -> 'png'.
+		'image' -> #[ 137 80 78 71 ] } asDictionary.
+	self assert: icon format equals: 'png'.
+	self assert: icon image equals: #[ 137 80 78 71 ]
+]

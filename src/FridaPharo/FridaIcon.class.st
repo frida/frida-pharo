@@ -1,12 +1,13 @@
 "
 Hand-written value type for an icon carried in a Frida process/application's
-parameters (an entry of the 'icons' array: format, width, height, image bytes).
-Renders graphically in the GT inspector via #asForm.
+parameters (an entry of the 'icons' array). An 'rgba' icon carries its width,
+height and raw pixels; a 'png' icon carries only the encoded bytes, its
+dimensions living inside them. Renders graphically in the GT inspector.
 "
 Class {
 	#name : 'FridaIcon',
 	#superclass : 'Object',
-	#instVars : [ 'format', 'width', 'height', 'image' ],
+	#instVars : [ 'format', 'width', 'height', 'image', 'form' ],
 	#category : 'FridaPharo',
 	#package : 'FridaPharo'
 }
@@ -15,14 +16,19 @@ Class {
 FridaIcon class >> fromDictionary: aDictionary [
 	^ self new
 		setFormat: (aDictionary at: 'format');
-		setWidth: (aDictionary at: 'width');
-		setHeight: (aDictionary at: 'height');
+		setWidth: (aDictionary at: 'width' ifAbsent: [ nil ]);
+		setHeight: (aDictionary at: 'height' ifAbsent: [ nil ]);
 		setImage: (aDictionary at: 'image');
 		yourself
 ]
 
 { #category : 'converting' }
 FridaIcon >> asForm [
+	^ form ifNil: [ form := self decodeForm ]
+]
+
+{ #category : 'converting' }
+FridaIcon >> decodeForm [
 	^ format = 'png'
 		ifTrue: [ self formFromPng ]
 		ifFalse: [ self formFromRgba ]
@@ -30,9 +36,9 @@ FridaIcon >> asForm [
 
 { #category : 'converting' }
 FridaIcon >> formFromRgba [
-	| form bits |
-	form := Form extent: width @ height depth: 32.
-	bits := form bits.
+	| decoded bits |
+	decoded := Form extent: width @ height depth: 32.
+	bits := decoded bits.
 	1 to: width * height do: [ :pixel |
 		| base |
 		base := (pixel - 1) * 4.
@@ -41,7 +47,7 @@ FridaIcon >> formFromRgba [
 			+ ((image at: base + 1) bitShift: 16)
 			+ ((image at: base + 2) bitShift: 8)
 			+ (image at: base + 3) ].
-	^ form
+	^ decoded
 ]
 
 { #category : 'converting' }
@@ -59,8 +65,23 @@ FridaIcon >> gtImageFor: aView [
 ]
 
 { #category : 'accessing' }
+FridaIcon >> width [
+	^ width ifNil: [ self asForm width ]
+]
+
+{ #category : 'accessing' }
+FridaIcon >> height [
+	^ height ifNil: [ self asForm height ]
+]
+
+{ #category : 'accessing' }
 FridaIcon >> format [
 	^ format
+]
+
+{ #category : 'accessing' }
+FridaIcon >> image [
+	^ image
 ]
 
 { #category : 'accessing' }
@@ -69,28 +90,13 @@ FridaIcon >> setFormat: aString [
 ]
 
 { #category : 'accessing' }
-FridaIcon >> width [
-	^ width
+FridaIcon >> setWidth: anIntegerOrNil [
+	width := anIntegerOrNil
 ]
 
 { #category : 'accessing' }
-FridaIcon >> setWidth: anInteger [
-	width := anInteger
-]
-
-{ #category : 'accessing' }
-FridaIcon >> height [
-	^ height
-]
-
-{ #category : 'accessing' }
-FridaIcon >> setHeight: anInteger [
-	height := anInteger
-]
-
-{ #category : 'accessing' }
-FridaIcon >> image [
-	^ image
+FridaIcon >> setHeight: anIntegerOrNil [
+	height := anIntegerOrNil
 ]
 
 { #category : 'accessing' }
@@ -101,5 +107,5 @@ FridaIcon >> setImage: aByteArray [
 { #category : 'printing' }
 FridaIcon >> printOn: aStream [
 	super printOn: aStream.
-	aStream nextPutAll: ' ('; print: width; nextPut: $x; print: height; nextPutAll: ' '; nextPutAll: format; nextPut: $)
+	aStream nextPutAll: ' ('; nextPutAll: format; nextPut: $)
 ]
