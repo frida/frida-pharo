@@ -20,6 +20,14 @@ FridaSpawnGatingOptions class >> new [
 ]
 
 { #category : 'generated' }
+FridaSpawnGatingOptions class >> configuredBy: aBlock [
+	| options |
+	options := self new.
+	aBlock value: options.
+	^ options
+]
+
+{ #category : 'generated' }
 FridaSpawnGatingOptions >> scope [
 	^ self ffiCall: #(FridaSpawnGatingScope frida_spawn_gating_options_get_scope (self)) library: FridaLibrary
 ]

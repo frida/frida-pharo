@@ -20,6 +20,14 @@ FridaSessionOptions class >> new [
 ]
 
 { #category : 'generated' }
+FridaSessionOptions class >> configuredBy: aBlock [
+	| options |
+	options := self new.
+	aBlock value: options.
+	^ options
+]
+
+{ #category : 'generated' }
 FridaSessionOptions >> realm [
 	^ self ffiCall: #(FridaRealm frida_session_options_get_realm (self)) library: FridaLibrary
 ]

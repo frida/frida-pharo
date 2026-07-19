@@ -20,6 +20,14 @@ FridaPackageInstallOptions class >> new [
 ]
 
 { #category : 'generated' }
+FridaPackageInstallOptions class >> configuredBy: aBlock [
+	| options |
+	options := self new.
+	aBlock value: options.
+	^ options
+]
+
+{ #category : 'generated' }
 FridaPackageInstallOptions >> projectRoot [
 	^ self ffiCall: #(String frida_package_install_options_get_project_root (self)) library: FridaLibrary
 ]

@@ -20,6 +20,14 @@ FridaProcessMatchOptions class >> new [
 ]
 
 { #category : 'generated' }
+FridaProcessMatchOptions class >> configuredBy: aBlock [
+	| options |
+	options := self new.
+	aBlock value: options.
+	^ options
+]
+
+{ #category : 'generated' }
 FridaProcessMatchOptions >> timeout [
 	^ self ffiCall: #(int frida_process_match_options_get_timeout (self)) library: FridaLibrary
 ]

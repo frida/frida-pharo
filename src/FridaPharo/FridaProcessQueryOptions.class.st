@@ -20,6 +20,14 @@ FridaProcessQueryOptions class >> new [
 ]
 
 { #category : 'generated' }
+FridaProcessQueryOptions class >> configuredBy: aBlock [
+	| options |
+	options := self new.
+	aBlock value: options.
+	^ options
+]
+
+{ #category : 'generated' }
 FridaProcessQueryOptions >> scope [
 	^ self ffiCall: #(FridaScope frida_process_query_options_get_scope (self)) library: FridaLibrary
 ]

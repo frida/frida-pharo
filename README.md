@@ -57,6 +57,11 @@ session on: 'detached' do: [ :args | Transcript showLn: 'detached: ', args print
 "Spawn, instrument at start-up, then resume."
 pid := device spawn: '/bin/ls'.
 session := device attach: pid.
+
+"Options are set with a configuration block."
+pid := device spawn: '/bin/sh' options: [ :o |
+	o argv: #('/bin/sh' '-c' 'echo hi').
+	o cwd: '/tmp' ].
 "... createScript / load ..."
 device resume: pid.
 ```

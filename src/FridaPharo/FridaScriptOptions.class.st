@@ -20,6 +20,14 @@ FridaScriptOptions class >> new [
 ]
 
 { #category : 'generated' }
+FridaScriptOptions class >> configuredBy: aBlock [
+	| options |
+	options := self new.
+	aBlock value: options.
+	^ options
+]
+
+{ #category : 'generated' }
 FridaScriptOptions >> name [
 	^ self ffiCall: #(String frida_script_options_get_name (self)) library: FridaLibrary
 ]

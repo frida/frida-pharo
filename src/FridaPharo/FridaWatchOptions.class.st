@@ -19,3 +19,11 @@ FridaWatchOptions class >> new [
 	^ self fromOwnedHandle: (self newRaw)
 ]
 
+{ #category : 'generated' }
+FridaWatchOptions class >> configuredBy: aBlock [
+	| options |
+	options := self new.
+	aBlock value: options.
+	^ options
+]
+

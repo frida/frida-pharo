@@ -19,3 +19,11 @@ FridaBuildOptions class >> new [
 	^ self fromOwnedHandle: (self newRaw)
 ]
 
+{ #category : 'generated' }
+FridaBuildOptions class >> configuredBy: aBlock [
+	| options |
+	options := self new.
+	aBlock value: options.
+	^ options
+]
+

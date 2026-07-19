@@ -54,40 +54,6 @@ FACADE_METHODS = (
         selector="exports",
         body=["^ FridaRpcExports on: self"],
     ),
-    # Device sugar: spawn with default options.
-    FacadeMethod(
-        target="FridaDevice",
-        class_side=False,
-        selector="spawn: program",
-        body=["^ self spawn: program options: nil"],
-    ),
-    # Session sugar: create an unconfigured script.
-    FacadeMethod(
-        target="FridaSession",
-        class_side=False,
-        selector="createScript: source",
-        body=["^ self createScript: source options: nil"],
-    ),
-    # Device sugar: attach with default options.
-    FacadeMethod(
-        target="FridaDevice",
-        class_side=False,
-        selector="attach: pid",
-        body=["^ self attach: pid options: nil"],
-    ),
-    # Device sugar: find a process with default match options.
-    FacadeMethod(
-        target="FridaDevice",
-        class_side=False,
-        selector="findProcessByName: name",
-        body=["^ self findProcessByName: name options: nil"],
-    ),
-    FacadeMethod(
-        target="FridaDevice",
-        class_side=False,
-        selector="findProcessByPid: pid",
-        body=["^ self findProcessByPid: pid options: nil"],
-    ),
     # Script sugar: post JSON without an accompanying binary blob.
     FacadeMethod(
         target="FridaScript",

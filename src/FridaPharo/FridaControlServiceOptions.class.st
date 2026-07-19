@@ -20,6 +20,14 @@ FridaControlServiceOptions class >> new [
 ]
 
 { #category : 'generated' }
+FridaControlServiceOptions class >> configuredBy: aBlock [
+	| options |
+	options := self new.
+	aBlock value: options.
+	^ options
+]
+
+{ #category : 'generated' }
 FridaControlServiceOptions >> enablePreload [
 	^ self ffiCall: #(bool frida_control_service_options_get_enable_preload (self)) library: FridaLibrary
 ]

@@ -37,8 +37,9 @@ FridaPackageManager >> registry: aValue [
 
 { #category : 'generated' }
 FridaPackageManager >> search: query options: options [
-	| marshalled0 raw |
-	marshalled0 := options isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options getHandle ].
+	| options0 marshalled0 raw |
+	options0 := options isNil ifTrue: [ nil ] ifFalse: [ FridaPackageSearchOptions configuredBy: options ].
+	marshalled0 := options0 isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options0 getHandle ].
 	raw := self asyncCall: [ :onReady | self searchBegin: query marshalled0: marshalled0 cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self searchFinish: asyncResult errorHolder: errorHolder ].
 	^ FridaPackageSearchResult fromHandle: (raw) owned: true
 ]
@@ -54,9 +55,15 @@ FridaPackageManager >> searchFinish: asyncResult errorHolder: errorHolder [
 ]
 
 { #category : 'generated' }
+FridaPackageManager >> search: query [
+	^ self search: query options: nil
+]
+
+{ #category : 'generated' }
 FridaPackageManager >> install: options [
-	| marshalled0 raw |
-	marshalled0 := options isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options getHandle ].
+	| options0 marshalled0 raw |
+	options0 := options isNil ifTrue: [ nil ] ifFalse: [ FridaPackageInstallOptions configuredBy: options ].
+	marshalled0 := options0 isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options0 getHandle ].
 	raw := self asyncCall: [ :onReady | self installBegin: marshalled0 cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self installFinish: asyncResult errorHolder: errorHolder ].
 	^ FridaPackageInstallResult fromHandle: (raw) owned: true
 ]
@@ -69,6 +76,11 @@ FridaPackageManager >> installBegin: marshalled0 cancellable: cancellable onRead
 { #category : 'generated' }
 FridaPackageManager >> installFinish: asyncResult errorHolder: errorHolder [
 	^ self ffiCall: #(void* frida_package_manager_install_finish (self, void* asyncResult, void* errorHolder)) library: FridaLibrary
+]
+
+{ #category : 'generated' }
+FridaPackageManager >> install [
+	^ self install: nil
 ]
 
 { #category : 'generated' }

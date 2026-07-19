@@ -93,8 +93,9 @@ FridaSession >> disableChildGatingFinish: asyncResult errorHolder: errorHolder [
 
 { #category : 'generated' }
 FridaSession >> createScript: source options: options [
-	| marshalled0 raw |
-	marshalled0 := options isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options getHandle ].
+	| options0 marshalled0 raw |
+	options0 := options isNil ifTrue: [ nil ] ifFalse: [ FridaScriptOptions configuredBy: options ].
+	marshalled0 := options0 isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options0 getHandle ].
 	raw := self asyncCall: [ :onReady | self createScriptBegin: source marshalled0: marshalled0 cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self createScriptFinish: asyncResult errorHolder: errorHolder ].
 	^ FridaScript fromOwnedHandle: (raw)
 ]
@@ -110,10 +111,16 @@ FridaSession >> createScriptFinish: asyncResult errorHolder: errorHolder [
 ]
 
 { #category : 'generated' }
+FridaSession >> createScript: source [
+	^ self createScript: source options: nil
+]
+
+{ #category : 'generated' }
 FridaSession >> createScriptFromBytes: bytes options: options [
-	| marshalled0 marshalled1 raw |
+	| options0 marshalled0 marshalled1 raw |
 	marshalled0 := self bytesFromByteArray: bytes.
-	marshalled1 := options isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options getHandle ].
+	options0 := options isNil ifTrue: [ nil ] ifFalse: [ FridaScriptOptions configuredBy: options ].
+	marshalled1 := options0 isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options0 getHandle ].
 	raw := self asyncCall: [ :onReady | self createScriptFromBytesBegin: marshalled0 marshalled1: marshalled1 cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self createScriptFromBytesFinish: asyncResult errorHolder: errorHolder ].
 	FridaGlue bytesUnref: marshalled0.
 	^ FridaScript fromOwnedHandle: (raw)
@@ -130,9 +137,15 @@ FridaSession >> createScriptFromBytesFinish: asyncResult errorHolder: errorHolde
 ]
 
 { #category : 'generated' }
+FridaSession >> createScriptFromBytes: bytes [
+	^ self createScriptFromBytes: bytes options: nil
+]
+
+{ #category : 'generated' }
 FridaSession >> compileScript: source options: options [
-	| marshalled0 raw |
-	marshalled0 := options isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options getHandle ].
+	| options0 marshalled0 raw |
+	options0 := options isNil ifTrue: [ nil ] ifFalse: [ FridaScriptOptions configuredBy: options ].
+	marshalled0 := options0 isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options0 getHandle ].
 	raw := self asyncCall: [ :onReady | self compileScriptBegin: source marshalled0: marshalled0 cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self compileScriptFinish: asyncResult errorHolder: errorHolder ].
 	^ FridaObject byteArrayFromBytes: (raw) owned: true
 ]
@@ -148,9 +161,15 @@ FridaSession >> compileScriptFinish: asyncResult errorHolder: errorHolder [
 ]
 
 { #category : 'generated' }
+FridaSession >> compileScript: source [
+	^ self compileScript: source options: nil
+]
+
+{ #category : 'generated' }
 FridaSession >> snapshotScript: embedScript options: options [
-	| marshalled0 raw |
-	marshalled0 := options isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options getHandle ].
+	| options0 marshalled0 raw |
+	options0 := options isNil ifTrue: [ nil ] ifFalse: [ FridaSnapshotOptions configuredBy: options ].
+	marshalled0 := options0 isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options0 getHandle ].
 	raw := self asyncCall: [ :onReady | self snapshotScriptBegin: embedScript marshalled0: marshalled0 cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self snapshotScriptFinish: asyncResult errorHolder: errorHolder ].
 	^ FridaObject byteArrayFromBytes: (raw) owned: true
 ]
@@ -166,9 +185,15 @@ FridaSession >> snapshotScriptFinish: asyncResult errorHolder: errorHolder [
 ]
 
 { #category : 'generated' }
+FridaSession >> snapshotScript: embedScript [
+	^ self snapshotScript: embedScript options: nil
+]
+
+{ #category : 'generated' }
 FridaSession >> setupPeerConnection: options [
-	| marshalled0 raw |
-	marshalled0 := options isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options getHandle ].
+	| options0 marshalled0 raw |
+	options0 := options isNil ifTrue: [ nil ] ifFalse: [ FridaPeerOptions configuredBy: options ].
+	marshalled0 := options0 isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options0 getHandle ].
 	raw := self asyncCall: [ :onReady | self setupPeerConnectionBegin: marshalled0 cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self setupPeerConnectionFinish: asyncResult errorHolder: errorHolder ].
 	^ self
 ]
@@ -184,9 +209,15 @@ FridaSession >> setupPeerConnectionFinish: asyncResult errorHolder: errorHolder 
 ]
 
 { #category : 'generated' }
+FridaSession >> setupPeerConnection [
+	^ self setupPeerConnection: nil
+]
+
+{ #category : 'generated' }
 FridaSession >> joinPortal: address options: options [
-	| marshalled0 raw |
-	marshalled0 := options isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options getHandle ].
+	| options0 marshalled0 raw |
+	options0 := options isNil ifTrue: [ nil ] ifFalse: [ FridaPortalOptions configuredBy: options ].
+	marshalled0 := options0 isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options0 getHandle ].
 	raw := self asyncCall: [ :onReady | self joinPortalBegin: address marshalled0: marshalled0 cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self joinPortalFinish: asyncResult errorHolder: errorHolder ].
 	^ FridaPortalMembership fromOwnedHandle: (raw)
 ]
@@ -199,6 +230,11 @@ FridaSession >> joinPortalBegin: address marshalled0: marshalled0 cancellable: c
 { #category : 'generated' }
 FridaSession >> joinPortalFinish: asyncResult errorHolder: errorHolder [
 	^ self ffiCall: #(void* frida_session_join_portal_finish (self, void* asyncResult, void* errorHolder)) library: FridaLibrary
+]
+
+{ #category : 'generated' }
+FridaSession >> joinPortal: address [
+	^ self joinPortal: address options: nil
 ]
 
 { #category : 'generated' }
@@ -219,10 +255,5 @@ FridaSession >> printOn: aStream [
 { #category : 'generated' }
 FridaSession class >> identityProperties [
 	^ #(pid)
-]
-
-{ #category : 'facade' }
-FridaSession >> createScript: source [
-	^ self createScript: source options: nil
 ]
 

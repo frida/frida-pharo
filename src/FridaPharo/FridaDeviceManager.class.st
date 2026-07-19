@@ -145,8 +145,9 @@ FridaDeviceManager >> enumerateDevicesFinish: asyncResult errorHolder: errorHold
 
 { #category : 'generated' }
 FridaDeviceManager >> addRemoteDevice: address options: options [
-	| marshalled0 raw |
-	marshalled0 := options isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options getHandle ].
+	| options0 marshalled0 raw |
+	options0 := options isNil ifTrue: [ nil ] ifFalse: [ FridaRemoteDeviceOptions configuredBy: options ].
+	marshalled0 := options0 isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options0 getHandle ].
 	raw := self asyncCall: [ :onReady | self addRemoteDeviceBegin: address marshalled0: marshalled0 cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self addRemoteDeviceFinish: asyncResult errorHolder: errorHolder ].
 	^ FridaDevice fromOwnedHandle: (raw)
 ]
@@ -159,6 +160,11 @@ FridaDeviceManager >> addRemoteDeviceBegin: address marshalled0: marshalled0 can
 { #category : 'generated' }
 FridaDeviceManager >> addRemoteDeviceFinish: asyncResult errorHolder: errorHolder [
 	^ self ffiCall: #(void* frida_device_manager_add_remote_device_finish (self, void* asyncResult, void* errorHolder)) library: FridaLibrary
+]
+
+{ #category : 'generated' }
+FridaDeviceManager >> addRemoteDevice: address [
+	^ self addRemoteDevice: address options: nil
 ]
 
 { #category : 'generated' }

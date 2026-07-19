@@ -20,6 +20,14 @@ FridaPackageSearchOptions class >> new [
 ]
 
 { #category : 'generated' }
+FridaPackageSearchOptions class >> configuredBy: aBlock [
+	| options |
+	options := self new.
+	aBlock value: options.
+	^ options
+]
+
+{ #category : 'generated' }
 FridaPackageSearchOptions >> offset [
 	^ self ffiCall: #(uint frida_package_search_options_get_offset (self)) library: FridaLibrary
 ]

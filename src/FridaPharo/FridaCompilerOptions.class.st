@@ -20,6 +20,14 @@ FridaCompilerOptions class >> new [
 ]
 
 { #category : 'generated' }
+FridaCompilerOptions class >> configuredBy: aBlock [
+	| options |
+	options := self new.
+	aBlock value: options.
+	^ options
+]
+
+{ #category : 'generated' }
 FridaCompilerOptions >> projectRoot [
 	^ self ffiCall: #(String frida_compiler_options_get_project_root (self)) library: FridaLibrary
 ]

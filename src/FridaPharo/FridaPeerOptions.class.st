@@ -20,6 +20,14 @@ FridaPeerOptions class >> new [
 ]
 
 { #category : 'generated' }
+FridaPeerOptions class >> configuredBy: aBlock [
+	| options |
+	options := self new.
+	aBlock value: options.
+	^ options
+]
+
+{ #category : 'generated' }
 FridaPeerOptions >> stunServer [
 	^ self ffiCall: #(String frida_peer_options_get_stun_server (self)) library: FridaLibrary
 ]

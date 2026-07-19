@@ -41,12 +41,13 @@ class Mapped:
     """A GIR type resolved to how Pharo should marshal it."""
 
     def __init__(self, kind: str, token: str, pharo_class: Optional[str] = None,
-                 is_list: bool = False, is_pod: bool = False):
+                 is_list: bool = False, is_pod: bool = False, is_options: bool = False):
         self.kind = kind  # scalar | string | object | enum | void
         self.token = token
         self.pharo_class = pharo_class
         self.is_list = is_list
         self.is_pod = is_pod
+        self.is_options = is_options
 
 
 def _pascal(camel: str) -> str:
@@ -94,7 +95,8 @@ def _map_type(type, model) -> Optional[Mapped]:
     obj = model.object_types.get(bare)
     if obj is not None and obj.c_type.startswith("Frida"):
         return Mapped("object", obj.pharo_name, obj.pharo_name,
-                      is_list=obj.is_frida_list, is_pod=_is_pod(obj))
+                      is_list=obj.is_frida_list, is_pod=_is_pod(obj),
+                      is_options=obj.is_frida_options)
 
     external = model.customizations.external_object_types.get(name)
     if external is not None:
@@ -215,6 +217,9 @@ def _emit_object_type(obj, model) -> str:
         if section is not None:
             sections.append(section)
 
+    if obj.is_frida_options:
+        sections.append(_emit_options_constructor(obj))
+
     for prop in obj.properties:
         section = _emit_property_getter(obj, prop, model)
         if section is not None:
@@ -256,6 +261,20 @@ def _emit_object_type(obj, model) -> str:
         superclass=superclass,
         comment=f"GENERATED binding for the Frida {obj.c_type} GObject.",
         body_sections=sections,
+    )
+
+
+def _emit_options_constructor(obj) -> str:
+    """Build an options instance from a configuration block, so callers set
+    options the idiomatic Smalltalk way (real setters, autocompleted, checked at
+    the call site) instead of building the GObject by hand."""
+    return _method(
+        f"{obj.pharo_name} class >> configuredBy: aBlock",
+        GENERATED_TAG,
+        ["| options |",
+         "options := self new.",
+         "aBlock value: options.",
+         "^ options"],
     )
 
 
@@ -488,37 +507,67 @@ def _emit_property_setter(obj, prop, model) -> Optional[str]:
 
 
 def _emit_method(obj, meth, model) -> Optional[str]:
-    if meth.is_async:
-        return _emit_async_method(obj, meth, model)
-
-    params = _map_parameters(meth.parameters, model)
-    if params is None:
-        return None
-
-    ret = meth.return_value.type if meth.return_value is not None else None
-    mapped = _map_type(ret, model)
-    if mapped is None:
-        return None
-
-    transfer = (meth.return_value.transfer_ownership
-                if meth.return_value is not None else TransferOwnership.none)
     base = to_camel_case(meth.name)
+    if meth.is_async:
+        section = _emit_async_method(obj, meth, model)
+        params = _async_params(meth, model)
+    else:
+        params = _map_parameters(meth.parameters, model)
+        if params is None:
+            return None
+        ret = meth.return_value.type if meth.return_value is not None else None
+        mapped = _map_type(ret, model)
+        if mapped is None:
+            return None
+        transfer = (meth.return_value.transfer_ownership
+                    if meth.return_value is not None else TransferOwnership.none)
+        section = _emit_returning_call(obj, base, meth.c_identifier, params, mapped,
+                                       transfer, instance=True, throws=meth.throws)
 
-    return _emit_returning_call(obj, base, meth.c_identifier, params, mapped,
-                                transfer, instance=True, throws=meth.throws)
+    if section is None:
+        return None
+    overload = _emit_default_options_overload(obj, base, params)
+    if overload is not None:
+        section += "\n" + overload
+    return section
 
 
-def _emit_async_method(obj, meth, model) -> Optional[str]:
+def _emit_default_options_overload(obj, base, params) -> Optional[str]:
+    """A method whose trailing argument is an options object also gets an
+    overload that omits it and passes nil, so callers can rely on the defaults
+    without naming the option they are not setting."""
+    if not params or not (params[-1][1].kind == "object" and params[-1][1].is_options):
+        return None
+    values = [name for name, _ in params]
+    values[-1] = "nil"
+    if len(params) == 1:
+        send = f"self {base}: nil"
+    else:
+        parts = [f"{base}: {values[0]}"]
+        for (name, _), value in zip(params[1:], values[1:]):
+            parts.append(f"{name}: {value}")
+        send = "self " + " ".join(parts)
+    return _method(f"{obj.pharo_name} >> {_selector(base, params[:-1])}",
+                   GENERATED_TAG, [f"^ {send}"])
+
+
+def _async_params(meth, model) -> Optional[list]:
     # The cancellable is passed as NULL, so it is not a Pharo parameter.
     in_params = [p for p in meth.input_parameters
                  if p.type.name != "Gio.Cancellable"]
-
     params = []
     for p in in_params:
         mapped = _map_type(p.type, model)
         if mapped is None or mapped.kind == "strv":
             return None
         params.append((to_camel_case(p.name), mapped))
+    return params
+
+
+def _emit_async_method(obj, meth, model) -> Optional[str]:
+    params = _async_params(meth, model)
+    if params is None:
+        return None
 
     ret = meth.return_value.type if meth.return_value is not None else None
     mapped = _map_type(ret, model)
@@ -535,10 +584,17 @@ def _emit_async_method(obj, meth, model) -> Optional[str]:
     # FFIExternalObject handles and enum values). The result is delivered by the
     # generated _finish prim, called on the VM thread inside FridaMainLoop's
     # dispatch via FridaObject>>asyncCall:finish:.
-    prologue, epilogue, begin_params = [], [], []
+    prologue, epilogue, begin_params, option_locals = [], [], [], []
     marshalled = 0
     for name, m in params:
-        if m.kind == "bytes":
+        if m.kind == "object" and m.is_options:
+            obj_local = f"options{len(option_locals)}"
+            option_locals.append(obj_local)
+            local = f"marshalled{marshalled}"
+            marshalled += 1
+            prologue += _explode_options_lines(name, m.pharo_class, obj_local, local)
+            begin_params.append((local, Mapped("pointer", "void*")))
+        elif m.kind == "bytes":
             local = f"marshalled{marshalled}"
             marshalled += 1
             prologue.append(f"{local} := self bytesFromByteArray: {name}.")
@@ -589,7 +645,7 @@ def _emit_async_method(obj, meth, model) -> Optional[str]:
     )
 
     begin_send = _async_begin_send(begin_base, begin_prim_params)
-    temps = [f"marshalled{i}" for i in range(marshalled)] + ["raw"]
+    temps = option_locals + [f"marshalled{i}" for i in range(marshalled)] + ["raw"]
     lines = ["| " + " ".join(temps) + " |"]
     lines += prologue
     lines.append(
@@ -697,6 +753,15 @@ def _return_wrap_expr(mapped, transfer, value_expr: str) -> str:
     return value_expr
 
 
+def _explode_options_lines(name, pharo_class, obj_local, handle_local) -> List[str]:
+    """Build an options instance from the caller's configuration block (nil ->
+    NULL), keeping the instance in obj_local so it outlives the borrowed call."""
+    return [
+        f"{obj_local} := {name} isNil ifTrue: [ nil ] ifFalse: [ {pharo_class} configuredBy: {name} ].",
+        f"{handle_local} := {obj_local} isNil ifTrue: [ ExternalAddress null ] ifFalse: [ {obj_local} getHandle ].",
+    ]
+
+
 def _emit_returning_call(obj, base, c_identifier, params, mapped, transfer,
                          instance: bool = True, throws: bool = False) -> str:
     """Emit a synchronous call, marshalling GBytes params, GError (throws) and
@@ -709,9 +774,17 @@ def _emit_returning_call(obj, base, c_identifier, params, mapped, transfer,
     # call and freed after; everything else passes straight through.
     prologue, epilogue = [], []
     prim_params = []   # (ffi_name, mapped) -> drives prim selector + ffi arg spec
+    option_locals = []
     marshalled_locals = 0
     for name, m in params:
-        if m.kind == "bytes":
+        if m.kind == "object" and m.is_options:
+            obj_local = f"options{len(option_locals)}"
+            option_locals.append(obj_local)
+            local = f"marshalled{marshalled_locals}"
+            marshalled_locals += 1
+            prologue += _explode_options_lines(name, m.pharo_class, obj_local, local)
+            prim_params.append((local, Mapped("pointer", "void*")))
+        elif m.kind == "bytes":
             local = f"marshalled{marshalled_locals}"
             marshalled_locals += 1
             prologue.append(f"{local} := self bytesFromByteArray: {name}.")
@@ -767,7 +840,7 @@ def _emit_returning_call(obj, base, c_identifier, params, mapped, transfer,
         [f"^ self ffiCall: #({ret_token} {c_identifier} ({arg_spec})) library: FridaLibrary"],
     )
 
-    temps = [f"marshalled{i}" for i in range(marshalled_locals)]
+    temps = option_locals + [f"marshalled{i}" for i in range(marshalled_locals)]
     if strv_length_holder:
         temps.append("lengthHolder")
     if throws:

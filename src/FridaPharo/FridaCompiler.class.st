@@ -21,8 +21,9 @@ FridaCompiler class >> new: manager [
 
 { #category : 'generated' }
 FridaCompiler >> build: entrypoint options: options [
-	| marshalled0 raw |
-	marshalled0 := options isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options getHandle ].
+	| options0 marshalled0 raw |
+	options0 := options isNil ifTrue: [ nil ] ifFalse: [ FridaBuildOptions configuredBy: options ].
+	marshalled0 := options0 isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options0 getHandle ].
 	raw := self asyncCall: [ :onReady | self buildBegin: entrypoint marshalled0: marshalled0 cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self buildFinish: asyncResult errorHolder: errorHolder ].
 	^ raw
 ]
@@ -38,9 +39,15 @@ FridaCompiler >> buildFinish: asyncResult errorHolder: errorHolder [
 ]
 
 { #category : 'generated' }
+FridaCompiler >> build: entrypoint [
+	^ self build: entrypoint options: nil
+]
+
+{ #category : 'generated' }
 FridaCompiler >> watch: entrypoint options: options [
-	| marshalled0 raw |
-	marshalled0 := options isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options getHandle ].
+	| options0 marshalled0 raw |
+	options0 := options isNil ifTrue: [ nil ] ifFalse: [ FridaWatchOptions configuredBy: options ].
+	marshalled0 := options0 isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options0 getHandle ].
 	raw := self asyncCall: [ :onReady | self watchBegin: entrypoint marshalled0: marshalled0 cancellable: ExternalAddress null onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self watchFinish: asyncResult errorHolder: errorHolder ].
 	^ self
 ]
@@ -53,6 +60,11 @@ FridaCompiler >> watchBegin: entrypoint marshalled0: marshalled0 cancellable: ca
 { #category : 'generated' }
 FridaCompiler >> watchFinish: asyncResult errorHolder: errorHolder [
 	^ self ffiCall: #(void frida_compiler_watch_finish (self, void* asyncResult, void* errorHolder)) library: FridaLibrary
+]
+
+{ #category : 'generated' }
+FridaCompiler >> watch: entrypoint [
+	^ self watch: entrypoint options: nil
 ]
 
 { #category : 'generated' }

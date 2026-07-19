@@ -20,6 +20,14 @@ FridaPortalOptions class >> new [
 ]
 
 { #category : 'generated' }
+FridaPortalOptions class >> configuredBy: aBlock [
+	| options |
+	options := self new.
+	aBlock value: options.
+	^ options
+]
+
+{ #category : 'generated' }
 FridaPortalOptions >> token [
 	^ self ffiCall: #(String frida_portal_options_get_token (self)) library: FridaLibrary
 ]

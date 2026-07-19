@@ -20,6 +20,14 @@ FridaRemoteDeviceOptions class >> new [
 ]
 
 { #category : 'generated' }
+FridaRemoteDeviceOptions class >> configuredBy: aBlock [
+	| options |
+	options := self new.
+	aBlock value: options.
+	^ options
+]
+
+{ #category : 'generated' }
 FridaRemoteDeviceOptions >> origin [
 	^ self ffiCall: #(String frida_remote_device_options_get_origin (self)) library: FridaLibrary
 ]

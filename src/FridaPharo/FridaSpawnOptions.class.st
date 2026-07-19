@@ -20,6 +20,14 @@ FridaSpawnOptions class >> new [
 ]
 
 { #category : 'generated' }
+FridaSpawnOptions class >> configuredBy: aBlock [
+	| options |
+	options := self new.
+	aBlock value: options.
+	^ options
+]
+
+{ #category : 'generated' }
 FridaSpawnOptions >> argvRaw: lengthHolder [
 	^ self ffiCall: #(void* frida_spawn_options_get_argv (self, void* lengthHolder)) library: FridaLibrary
 ]

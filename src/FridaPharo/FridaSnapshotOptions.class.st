@@ -20,6 +20,14 @@ FridaSnapshotOptions class >> new [
 ]
 
 { #category : 'generated' }
+FridaSnapshotOptions class >> configuredBy: aBlock [
+	| options |
+	options := self new.
+	aBlock value: options.
+	^ options
+]
+
+{ #category : 'generated' }
 FridaSnapshotOptions >> warmupScript [
 	^ self ffiCall: #(String frida_snapshot_options_get_warmup_script (self)) library: FridaLibrary
 ]

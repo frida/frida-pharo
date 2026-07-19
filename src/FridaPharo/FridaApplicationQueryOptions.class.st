@@ -20,6 +20,14 @@ FridaApplicationQueryOptions class >> new [
 ]
 
 { #category : 'generated' }
+FridaApplicationQueryOptions class >> configuredBy: aBlock [
+	| options |
+	options := self new.
+	aBlock value: options.
+	^ options
+]
+
+{ #category : 'generated' }
 FridaApplicationQueryOptions >> scope [
 	^ self ffiCall: #(FridaScope frida_application_query_options_get_scope (self)) library: FridaLibrary
 ]

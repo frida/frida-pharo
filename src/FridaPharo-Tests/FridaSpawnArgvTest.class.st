@@ -1,7 +1,7 @@
 "
-strv input: spawn /bin/sh with an explicit argv (via SpawnOptions) that writes a
-file, then assert the file appeared after resume -- proving the gchar**+length
-argv actually took effect.
+strv input: spawn /bin/sh with an explicit argv (via an options configuration
+block) that writes a file, then assert the file appeared after resume -- proving
+the gchar**+length argv actually took effect.
 "
 Class {
 	#name : 'FridaSpawnArgvTest',
@@ -12,16 +12,15 @@ Class {
 
 { #category : 'tests' }
 FridaSpawnArgvTest >> testSpawnWithArgvWritesFile [
-	| device options marker file pid remaining |
+	| device marker file pid remaining |
 	marker := '/tmp/frida_pharo_spawn_', 1000000 atRandom printString, '.txt'.
 	file := marker asFileReference.
 	file ensureDelete.
 
 	device := Frida localDevice.
-	options := FridaSpawnOptions new.
-	options argv: { '/bin/sh'. '-c'. 'echo ok > ', marker }.
-
-	pid := device spawn: '/bin/sh' options: options.
+	pid := device
+		spawn: '/bin/sh'
+		options: [ :o | o argv: { '/bin/sh'. '-c'. 'echo ok > ', marker } ].
 	device resume: pid.
 
 	remaining := 100.
