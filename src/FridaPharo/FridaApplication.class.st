@@ -108,3 +108,20 @@ FridaApplication class >> identityProperties [
 	^ #(identifier pid)
 ]
 
+{ #category : 'accessing' }
+FridaApplication >> icons [
+	^ (self parameters at: 'icons' ifAbsent: [ #() ]) collect: [ :each | FridaIcon fromDictionary: each ]
+]
+
+{ #category : 'inspecting' }
+FridaApplication >> gtIconFor: aView [
+	<gtView>
+	| icon |
+	icon := self icons detectMax: [ :each | each width ].
+	icon ifNil: [ ^ aView empty ].
+	^ aView explicit
+		title: 'Icon';
+		priority: 15;
+		stencil: [ icon asForm asElement ]
+]
+

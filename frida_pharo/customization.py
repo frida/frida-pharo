@@ -71,6 +71,37 @@ FACADE_METHODS = (
         selector="post: json",
         body=["^ self post: json data: nil"],
     ),
+    # Icons live in the parameters' 'icons' array; wrap each as a FridaIcon that
+    # renders graphically in the inspector.
+    *[
+        method
+        for target in ("FridaApplication", "FridaProcess")
+        for method in (
+            FacadeMethod(
+                target=target,
+                class_side=False,
+                selector="icons",
+                category="accessing",
+                body=["^ (self parameters at: 'icons' ifAbsent: [ #() ]) collect: [ :each | FridaIcon fromDictionary: each ]"],
+            ),
+            FacadeMethod(
+                target=target,
+                class_side=False,
+                selector="gtIconFor: aView",
+                category="inspecting",
+                body=[
+                    "<gtView>",
+                    "| icon |",
+                    "icon := self icons detectMax: [ :each | each width ].",
+                    "icon ifNil: [ ^ aView empty ].",
+                    "^ aView explicit",
+                    "\ttitle: 'Icon';",
+                    "\tpriority: 15;",
+                    "\tstencil: [ icon asForm asElement ]",
+                ],
+            ),
+        )
+    ],
 )
 
 
