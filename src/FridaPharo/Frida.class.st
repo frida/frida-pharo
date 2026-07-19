@@ -20,6 +20,13 @@ Frida class >> deviceManager [
 ]
 
 { #category : 'facade' }
+Frida class >> closeDeviceManager [
+	DeviceManager ifNil: [ ^ self ].
+	DeviceManager close.
+	DeviceManager := nil
+]
+
+{ #category : 'facade' }
 Frida class >> localDevice [
 	^ self deviceManager
 		getDeviceByType: FridaDeviceType FridaDeviceTypeLocal

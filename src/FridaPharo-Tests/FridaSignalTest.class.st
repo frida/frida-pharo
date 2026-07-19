@@ -4,7 +4,7 @@ detach, and assert the handler fires on the Pharo thread with the reason arg.
 "
 Class {
 	#name : 'FridaSignalTest',
-	#superclass : 'TestCase',
+	#superclass : 'FridaTestCase',
 	#category : 'FridaPharo-Tests',
 	#package : 'FridaPharo-Tests'
 }

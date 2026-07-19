@@ -4,7 +4,7 @@ customization.print_specs), so the inspector/debugger display something useful.
 "
 Class {
 	#name : 'FridaPrintOnTest',
-	#superclass : 'TestCase',
+	#superclass : 'FridaTestCase',
 	#category : 'FridaPharo-Tests',
 	#package : 'FridaPharo-Tests'
 }

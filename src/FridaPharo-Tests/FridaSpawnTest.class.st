@@ -4,7 +4,7 @@ returns (the spawned pid) and int-arg async ops.
 "
 Class {
 	#name : 'FridaSpawnTest',
-	#superclass : 'TestCase',
+	#superclass : 'FridaTestCase',
 	#category : 'FridaPharo-Tests',
 	#package : 'FridaPharo-Tests'
 }

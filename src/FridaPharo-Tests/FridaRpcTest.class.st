@@ -4,7 +4,7 @@ function, and call it over the message/post transport, asserting 3 + 4 = 7.
 "
 Class {
 	#name : 'FridaRpcTest',
-	#superclass : 'TestCase',
+	#superclass : 'FridaTestCase',
 	#category : 'FridaPharo-Tests',
 	#package : 'FridaPharo-Tests'
 }

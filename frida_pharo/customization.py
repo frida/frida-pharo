@@ -41,6 +41,16 @@ FACADE_METHODS = (
     FacadeMethod(
         target="Frida",
         class_side=True,
+        selector="closeDeviceManager",
+        body=[
+            "DeviceManager ifNil: [ ^ self ].",
+            "DeviceManager close.",
+            "DeviceManager := nil",
+        ],
+    ),
+    FacadeMethod(
+        target="Frida",
+        class_side=True,
         selector="localDevice",
         body=[
             "^ self deviceManager",

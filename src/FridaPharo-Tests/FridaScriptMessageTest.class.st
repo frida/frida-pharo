@@ -4,7 +4,7 @@ facades, and the message signal delivered back on the Pharo thread.
 "
 Class {
 	#name : 'FridaScriptMessageTest',
-	#superclass : 'TestCase',
+	#superclass : 'FridaTestCase',
 	#category : 'FridaPharo-Tests',
 	#package : 'FridaPharo-Tests'
 }

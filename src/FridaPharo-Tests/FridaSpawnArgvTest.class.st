@@ -5,7 +5,7 @@ the gchar**+length argv actually took effect.
 "
 Class {
 	#name : 'FridaSpawnArgvTest',
-	#superclass : 'TestCase',
+	#superclass : 'FridaTestCase',
 	#category : 'FridaPharo-Tests',
 	#package : 'FridaPharo-Tests'
 }

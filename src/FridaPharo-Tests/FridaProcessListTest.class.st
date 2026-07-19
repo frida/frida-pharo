@@ -6,7 +6,7 @@ element is a live FridaProcess whose pid/name marshal back.
 "
 Class {
 	#name : 'FridaProcessListTest',
-	#superclass : 'TestCase',
+	#superclass : 'FridaTestCase',
 	#category : 'FridaPharo-Tests',
 	#package : 'FridaPharo-Tests'
 }

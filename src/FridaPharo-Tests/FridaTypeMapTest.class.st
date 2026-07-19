@@ -5,7 +5,7 @@ signal-delivered objects expose their concrete API.
 "
 Class {
 	#name : 'FridaTypeMapTest',
-	#superclass : 'TestCase',
+	#superclass : 'FridaTestCase',
 	#category : 'FridaPharo-Tests',
 	#package : 'FridaPharo-Tests'
 }

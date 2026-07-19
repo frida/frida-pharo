@@ -5,7 +5,7 @@ the ByteArray -> GBytes marshalling (and its freeing) round-trips.
 "
 Class {
 	#name : 'FridaScriptPostDataTest',
-	#superclass : 'TestCase',
+	#superclass : 'FridaTestCase',
 	#category : 'FridaPharo-Tests',
 	#package : 'FridaPharo-Tests'
 }

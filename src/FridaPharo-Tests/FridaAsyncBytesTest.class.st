@@ -7,7 +7,7 @@ rather than crashing.
 "
 Class {
 	#name : 'FridaAsyncBytesTest',
-	#superclass : 'TestCase',
+	#superclass : 'FridaTestCase',
 	#category : 'FridaPharo-Tests',
 	#package : 'FridaPharo-Tests'
 }
