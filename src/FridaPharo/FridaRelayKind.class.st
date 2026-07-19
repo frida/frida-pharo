@@ -24,3 +24,13 @@ FridaRelayKind class >> initialize [
 	self rebuildEnumAccessors
 ]
 
+{ #category : 'generated' }
+FridaRelayKind class >> fromSymbol: aSymbol [
+	^ self symbolValues at: aSymbol
+]
+
+{ #category : 'generated' }
+FridaRelayKind class >> symbolValues [
+	^ { #turnUdp -> FridaRelayKindTurnUdp. #turnTcp -> FridaRelayKindTurnTcp. #turnTls -> FridaRelayKindTurnTls } asDictionary
+]
+

@@ -24,3 +24,13 @@ FridaDeviceType class >> initialize [
 	self rebuildEnumAccessors
 ]
 
+{ #category : 'generated' }
+FridaDeviceType class >> fromSymbol: aSymbol [
+	^ self symbolValues at: aSymbol
+]
+
+{ #category : 'generated' }
+FridaDeviceType class >> symbolValues [
+	^ { #local -> FridaDeviceTypeLocal. #remote -> FridaDeviceTypeRemote. #usb -> FridaDeviceTypeUsb } asDictionary
+]
+

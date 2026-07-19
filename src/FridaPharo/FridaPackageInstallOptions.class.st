@@ -55,7 +55,7 @@ FridaPackageInstallOptions >> roleRaw: aValue [
 
 { #category : 'generated' }
 FridaPackageInstallOptions >> role: aValue [
-	self roleRaw: aValue.
+	self roleRaw: (FridaPackageRole fromSymbol: aValue).
 	^ self
 ]
 
@@ -75,7 +75,15 @@ FridaPackageInstallOptions >> clearOmits [
 ]
 
 { #category : 'generated' }
+FridaPackageInstallOptions >> addOmitRaw: marshalled0 [
+	^ self ffiCall: #(void frida_package_install_options_add_omit (self, FridaPackageRole marshalled0)) library: FridaLibrary
+]
+
+{ #category : 'generated' }
 FridaPackageInstallOptions >> addOmit: role [
-	^ self ffiCall: #(void frida_package_install_options_add_omit (self, FridaPackageRole role)) library: FridaLibrary
+	| marshalled0 result |
+	marshalled0 := FridaPackageRole fromSymbol: role.
+	result := self addOmitRaw: marshalled0.
+	^ self
 ]
 

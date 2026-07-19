@@ -23,3 +23,13 @@ FridaRuntime class >> initialize [
 	self rebuildEnumAccessors
 ]
 
+{ #category : 'generated' }
+FridaRuntime class >> fromSymbol: aSymbol [
+	^ self symbolValues at: aSymbol
+]
+
+{ #category : 'generated' }
+FridaRuntime class >> symbolValues [
+	^ { #glib -> FridaRuntimeGlib. #other -> FridaRuntimeOther } asDictionary
+]
+

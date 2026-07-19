@@ -25,3 +25,13 @@ FridaPackageRole class >> initialize [
 	self rebuildEnumAccessors
 ]
 
+{ #category : 'generated' }
+FridaPackageRole class >> fromSymbol: aSymbol [
+	^ self symbolValues at: aSymbol
+]
+
+{ #category : 'generated' }
+FridaPackageRole class >> symbolValues [
+	^ { #runtime -> FridaPackageRoleRuntime. #development -> FridaPackageRoleDevelopment. #optional -> FridaPackageRoleOptional. #peer -> FridaPackageRolePeer } asDictionary
+]
+

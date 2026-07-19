@@ -39,7 +39,7 @@ FridaSpawnGatingOptions >> scopeRaw: aValue [
 
 { #category : 'generated' }
 FridaSpawnGatingOptions >> scope: aValue [
-	self scopeRaw: aValue.
+	self scopeRaw: (FridaSpawnGatingScope fromSymbol: aValue).
 	^ self
 ]
 

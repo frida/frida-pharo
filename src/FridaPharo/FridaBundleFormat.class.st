@@ -23,3 +23,13 @@ FridaBundleFormat class >> initialize [
 	self rebuildEnumAccessors
 ]
 
+{ #category : 'generated' }
+FridaBundleFormat class >> fromSymbol: aSymbol [
+	^ self symbolValues at: aSymbol
+]
+
+{ #category : 'generated' }
+FridaBundleFormat class >> symbolValues [
+	^ { #esm -> FridaBundleFormatEsm. #iife -> FridaBundleFormatIife } asDictionary
+]
+

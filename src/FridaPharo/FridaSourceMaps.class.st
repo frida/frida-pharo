@@ -23,3 +23,13 @@ FridaSourceMaps class >> initialize [
 	self rebuildEnumAccessors
 ]
 
+{ #category : 'generated' }
+FridaSourceMaps class >> fromSymbol: aSymbol [
+	^ self symbolValues at: aSymbol
+]
+
+{ #category : 'generated' }
+FridaSourceMaps class >> symbolValues [
+	^ { #included -> FridaSourceMapsIncluded. #omitted -> FridaSourceMapsOmitted } asDictionary
+]
+

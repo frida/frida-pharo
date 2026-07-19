@@ -26,3 +26,13 @@ FridaSessionDetachReason class >> initialize [
 	self rebuildEnumAccessors
 ]
 
+{ #category : 'generated' }
+FridaSessionDetachReason class >> fromSymbol: aSymbol [
+	^ self symbolValues at: aSymbol
+]
+
+{ #category : 'generated' }
+FridaSessionDetachReason class >> symbolValues [
+	^ { #applicationRequested -> FridaSessionDetachReasonApplicationRequested. #processReplaced -> FridaSessionDetachReasonProcessReplaced. #processTerminated -> FridaSessionDetachReasonProcessTerminated. #connectionTerminated -> FridaSessionDetachReasonConnectionTerminated. #deviceLost -> FridaSessionDetachReasonDeviceLost } asDictionary
+]
+

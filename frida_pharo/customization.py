@@ -54,7 +54,7 @@ FACADE_METHODS = (
         selector="localDevice",
         body=[
             "^ self deviceManager",
-            "\tgetDeviceByType: FridaDeviceType FridaDeviceTypeLocal",
+            "\tgetDeviceByType: #local",
             "\ttimeout: 0",
         ],
     ),

@@ -23,3 +23,13 @@ FridaRealm class >> initialize [
 	self rebuildEnumAccessors
 ]
 
+{ #category : 'generated' }
+FridaRealm class >> fromSymbol: aSymbol [
+	^ self symbolValues at: aSymbol
+]
+
+{ #category : 'generated' }
+FridaRealm class >> symbolValues [
+	^ { #native -> FridaRealmNative. #emulated -> FridaRealmEmulated } asDictionary
+]
+

@@ -55,7 +55,7 @@ FridaSnapshotOptions >> runtimeRaw: aValue [
 
 { #category : 'generated' }
 FridaSnapshotOptions >> runtime: aValue [
-	self runtimeRaw: aValue.
+	self runtimeRaw: (FridaScriptRuntime fromSymbol: aValue).
 	^ self
 ]
 

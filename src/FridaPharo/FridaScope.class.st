@@ -24,3 +24,13 @@ FridaScope class >> initialize [
 	self rebuildEnumAccessors
 ]
 
+{ #category : 'generated' }
+FridaScope class >> fromSymbol: aSymbol [
+	^ self symbolValues at: aSymbol
+]
+
+{ #category : 'generated' }
+FridaScope class >> symbolValues [
+	^ { #minimal -> FridaScopeMinimal. #metadata -> FridaScopeMetadata. #full -> FridaScopeFull } asDictionary
+]
+

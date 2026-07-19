@@ -24,3 +24,13 @@ FridaChildOrigin class >> initialize [
 	self rebuildEnumAccessors
 ]
 
+{ #category : 'generated' }
+FridaChildOrigin class >> fromSymbol: aSymbol [
+	^ self symbolValues at: aSymbol
+]
+
+{ #category : 'generated' }
+FridaChildOrigin class >> symbolValues [
+	^ { #fork -> FridaChildOriginFork. #exec -> FridaChildOriginExec. #spawn -> FridaChildOriginSpawn } asDictionary
+]
+

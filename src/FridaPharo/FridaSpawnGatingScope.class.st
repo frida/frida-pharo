@@ -24,3 +24,13 @@ FridaSpawnGatingScope class >> initialize [
 	self rebuildEnumAccessors
 ]
 
+{ #category : 'generated' }
+FridaSpawnGatingScope class >> fromSymbol: aSymbol [
+	^ self symbolValues at: aSymbol
+]
+
+{ #category : 'generated' }
+FridaSpawnGatingScope class >> symbolValues [
+	^ { #default -> FridaSpawnGatingScopeDefault. #applications -> FridaSpawnGatingScopeApplications. #processes -> FridaSpawnGatingScopeProcesses } asDictionary
+]
+

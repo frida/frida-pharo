@@ -24,3 +24,13 @@ FridaExceptor class >> initialize [
 	self rebuildEnumAccessors
 ]
 
+{ #category : 'generated' }
+FridaExceptor class >> fromSymbol: aSymbol [
+	^ self symbolValues at: aSymbol
+]
+
+{ #category : 'generated' }
+FridaExceptor class >> symbolValues [
+	^ { #full -> FridaExceptorFull. #handlerOnly -> FridaExceptorHandlerOnly. #off -> FridaExceptorOff } asDictionary
+]
+

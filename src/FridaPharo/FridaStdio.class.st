@@ -23,3 +23,13 @@ FridaStdio class >> initialize [
 	self rebuildEnumAccessors
 ]
 
+{ #category : 'generated' }
+FridaStdio class >> fromSymbol: aSymbol [
+	^ self symbolValues at: aSymbol
+]
+
+{ #category : 'generated' }
+FridaStdio class >> symbolValues [
+	^ { #inherit -> FridaStdioInherit. #pipe -> FridaStdioPipe } asDictionary
+]
+

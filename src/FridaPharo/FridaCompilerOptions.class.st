@@ -80,7 +80,7 @@ FridaCompilerOptions >> outputFormatRaw: aValue [
 
 { #category : 'generated' }
 FridaCompilerOptions >> outputFormat: aValue [
-	self outputFormatRaw: aValue.
+	self outputFormatRaw: (FridaOutputFormat fromSymbol: aValue).
 	^ self
 ]
 
@@ -91,7 +91,7 @@ FridaCompilerOptions >> bundleFormatRaw: aValue [
 
 { #category : 'generated' }
 FridaCompilerOptions >> bundleFormat: aValue [
-	self bundleFormatRaw: aValue.
+	self bundleFormatRaw: (FridaBundleFormat fromSymbol: aValue).
 	^ self
 ]
 
@@ -102,7 +102,7 @@ FridaCompilerOptions >> typeCheckRaw: aValue [
 
 { #category : 'generated' }
 FridaCompilerOptions >> typeCheck: aValue [
-	self typeCheckRaw: aValue.
+	self typeCheckRaw: (FridaTypeCheckMode fromSymbol: aValue).
 	^ self
 ]
 
@@ -113,7 +113,7 @@ FridaCompilerOptions >> sourceMapsRaw: aValue [
 
 { #category : 'generated' }
 FridaCompilerOptions >> sourceMaps: aValue [
-	self sourceMapsRaw: aValue.
+	self sourceMapsRaw: (FridaSourceMaps fromSymbol: aValue).
 	^ self
 ]
 
@@ -124,7 +124,7 @@ FridaCompilerOptions >> compressionRaw: aValue [
 
 { #category : 'generated' }
 FridaCompilerOptions >> compression: aValue [
-	self compressionRaw: aValue.
+	self compressionRaw: (FridaJsCompression fromSymbol: aValue).
 	^ self
 ]
 
@@ -135,7 +135,7 @@ FridaCompilerOptions >> platformRaw: aValue [
 
 { #category : 'generated' }
 FridaCompilerOptions >> platform: aValue [
-	self platformRaw: aValue.
+	self platformRaw: (FridaJsPlatform fromSymbol: aValue).
 	^ self
 ]
 

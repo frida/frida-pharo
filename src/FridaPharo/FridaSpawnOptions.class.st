@@ -151,7 +151,7 @@ FridaSpawnOptions >> stdioRaw: aValue [
 
 { #category : 'generated' }
 FridaSpawnOptions >> stdio: aValue [
-	self stdioRaw: aValue.
+	self stdioRaw: (FridaStdio fromSymbol: aValue).
 	^ self
 ]
 

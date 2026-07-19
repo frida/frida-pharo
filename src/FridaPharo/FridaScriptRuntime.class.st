@@ -24,3 +24,13 @@ FridaScriptRuntime class >> initialize [
 	self rebuildEnumAccessors
 ]
 
+{ #category : 'generated' }
+FridaScriptRuntime class >> fromSymbol: aSymbol [
+	^ self symbolValues at: aSymbol
+]
+
+{ #category : 'generated' }
+FridaScriptRuntime class >> symbolValues [
+	^ { #default -> FridaScriptRuntimeDefault. #qjs -> FridaScriptRuntimeQjs. #v8 -> FridaScriptRuntimeV8 } asDictionary
+]
+

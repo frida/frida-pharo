@@ -86,7 +86,7 @@ FridaScriptOptions >> snapshotTransportRaw: aValue [
 
 { #category : 'generated' }
 FridaScriptOptions >> snapshotTransport: aValue [
-	self snapshotTransportRaw: aValue.
+	self snapshotTransportRaw: (FridaSnapshotTransport fromSymbol: aValue).
 	^ self
 ]
 
@@ -97,7 +97,7 @@ FridaScriptOptions >> runtimeRaw: aValue [
 
 { #category : 'generated' }
 FridaScriptOptions >> runtime: aValue [
-	self runtimeRaw: aValue.
+	self runtimeRaw: (FridaScriptRuntime fromSymbol: aValue).
 	^ self
 ]
 

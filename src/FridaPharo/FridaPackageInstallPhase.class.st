@@ -30,3 +30,13 @@ FridaPackageInstallPhase class >> initialize [
 	self rebuildEnumAccessors
 ]
 
+{ #category : 'generated' }
+FridaPackageInstallPhase class >> fromSymbol: aSymbol [
+	^ self symbolValues at: aSymbol
+]
+
+{ #category : 'generated' }
+FridaPackageInstallPhase class >> symbolValues [
+	^ { #initializing -> FridaPackageInstallPhaseInitializing. #preparingDependencies -> FridaPackageInstallPhasePreparingDependencies. #resolvingPackage -> FridaPackageInstallPhaseResolvingPackage. #fetchingResource -> FridaPackageInstallPhaseFetchingResource. #packageAlreadyInstalled -> FridaPackageInstallPhasePackageAlreadyInstalled. #downloadingPackage -> FridaPackageInstallPhaseDownloadingPackage. #packageInstalled -> FridaPackageInstallPhasePackageInstalled. #resolvingAndInstallingAll -> FridaPackageInstallPhaseResolvingAndInstallingAll. #complete -> FridaPackageInstallPhaseComplete } asDictionary
+]
+

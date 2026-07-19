@@ -23,3 +23,13 @@ FridaJsCompression class >> initialize [
 	self rebuildEnumAccessors
 ]
 
+{ #category : 'generated' }
+FridaJsCompression class >> fromSymbol: aSymbol [
+	^ self symbolValues at: aSymbol
+]
+
+{ #category : 'generated' }
+FridaJsCompression class >> symbolValues [
+	^ { #none -> FridaJsCompressionNone. #terser -> FridaJsCompressionTerser } asDictionary
+]
+

@@ -29,7 +29,7 @@ Frida class >> closeDeviceManager [
 { #category : 'facade' }
 Frida class >> localDevice [
 	^ self deviceManager
-		getDeviceByType: FridaDeviceType FridaDeviceTypeLocal
+		getDeviceByType: #local
 		timeout: 0
 ]
 

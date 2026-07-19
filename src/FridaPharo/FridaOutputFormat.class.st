@@ -24,3 +24,13 @@ FridaOutputFormat class >> initialize [
 	self rebuildEnumAccessors
 ]
 
+{ #category : 'generated' }
+FridaOutputFormat class >> fromSymbol: aSymbol [
+	^ self symbolValues at: aSymbol
+]
+
+{ #category : 'generated' }
+FridaOutputFormat class >> symbolValues [
+	^ { #unescaped -> FridaOutputFormatUnescaped. #hexBytes -> FridaOutputFormatHexBytes. #cString -> FridaOutputFormatCString } asDictionary
+]
+

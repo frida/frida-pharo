@@ -23,3 +23,13 @@ FridaSpawnGatingDisabledReason class >> initialize [
 	self rebuildEnumAccessors
 ]
 
+{ #category : 'generated' }
+FridaSpawnGatingDisabledReason class >> fromSymbol: aSymbol [
+	^ self symbolValues at: aSymbol
+]
+
+{ #category : 'generated' }
+FridaSpawnGatingDisabledReason class >> symbolValues [
+	^ { #applicationRequested -> FridaSpawnGatingDisabledReasonApplicationRequested. #watchdogTimeout -> FridaSpawnGatingDisabledReasonWatchdogTimeout } asDictionary
+]
+

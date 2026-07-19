@@ -23,3 +23,13 @@ FridaSnapshotTransport class >> initialize [
 	self rebuildEnumAccessors
 ]
 
+{ #category : 'generated' }
+FridaSnapshotTransport class >> fromSymbol: aSymbol [
+	^ self symbolValues at: aSymbol
+]
+
+{ #category : 'generated' }
+FridaSnapshotTransport class >> symbolValues [
+	^ { #inline -> FridaSnapshotTransportInline. #sharedMemory -> FridaSnapshotTransportSharedMemory } asDictionary
+]
+

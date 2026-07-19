@@ -23,3 +23,13 @@ FridaTypeCheckMode class >> initialize [
 	self rebuildEnumAccessors
 ]
 
+{ #category : 'generated' }
+FridaTypeCheckMode class >> fromSymbol: aSymbol [
+	^ self symbolValues at: aSymbol
+]
+
+{ #category : 'generated' }
+FridaTypeCheckMode class >> symbolValues [
+	^ { #full -> FridaTypeCheckModeFull. #none -> FridaTypeCheckModeNone } asDictionary
+]
+

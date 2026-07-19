@@ -89,15 +89,16 @@ FridaDeviceManager >> getDeviceById: id timeout: timeout [
 
 { #category : 'generated' }
 FridaDeviceManager >> getDeviceByType: type timeout: timeout cancellable: cancellable [
-	| cancellableHandle raw |
+	| marshalled0 cancellableHandle raw |
+	marshalled0 := FridaDeviceType fromSymbol: type.
 	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
-	raw := self asyncCall: [ :onReady | self getDeviceByTypeBegin: type timeout: timeout cancellable: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self getDeviceByTypeFinish: asyncResult errorHolder: errorHolder ].
+	raw := self asyncCall: [ :onReady | self getDeviceByTypeBegin: marshalled0 timeout: timeout cancellable: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self getDeviceByTypeFinish: asyncResult errorHolder: errorHolder ].
 	^ FridaDevice fromOwnedHandle: (raw)
 ]
 
 { #category : 'generated' }
-FridaDeviceManager >> getDeviceByTypeBegin: type timeout: timeout cancellable: cancellable onReady: onReady userData: userData [
-	^ self ffiCall: #(void frida_device_manager_get_device_by_type (self, FridaDeviceType type, int timeout, void* cancellable, void* onReady, void* userData)) library: FridaLibrary
+FridaDeviceManager >> getDeviceByTypeBegin: marshalled0 timeout: timeout cancellable: cancellable onReady: onReady userData: userData [
+	^ self ffiCall: #(void frida_device_manager_get_device_by_type (self, FridaDeviceType marshalled0, int timeout, void* cancellable, void* onReady, void* userData)) library: FridaLibrary
 ]
 
 { #category : 'generated' }
@@ -135,15 +136,16 @@ FridaDeviceManager >> findDeviceById: id timeout: timeout [
 
 { #category : 'generated' }
 FridaDeviceManager >> findDeviceByType: type timeout: timeout cancellable: cancellable [
-	| cancellableHandle raw |
+	| marshalled0 cancellableHandle raw |
+	marshalled0 := FridaDeviceType fromSymbol: type.
 	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
-	raw := self asyncCall: [ :onReady | self findDeviceByTypeBegin: type timeout: timeout cancellable: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self findDeviceByTypeFinish: asyncResult errorHolder: errorHolder ].
+	raw := self asyncCall: [ :onReady | self findDeviceByTypeBegin: marshalled0 timeout: timeout cancellable: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self findDeviceByTypeFinish: asyncResult errorHolder: errorHolder ].
 	^ FridaDevice fromOwnedHandle: (raw)
 ]
 
 { #category : 'generated' }
-FridaDeviceManager >> findDeviceByTypeBegin: type timeout: timeout cancellable: cancellable onReady: onReady userData: userData [
-	^ self ffiCall: #(void frida_device_manager_find_device_by_type (self, FridaDeviceType type, int timeout, void* cancellable, void* onReady, void* userData)) library: FridaLibrary
+FridaDeviceManager >> findDeviceByTypeBegin: marshalled0 timeout: timeout cancellable: cancellable onReady: onReady userData: userData [
+	^ self ffiCall: #(void frida_device_manager_find_device_by_type (self, FridaDeviceType marshalled0, int timeout, void* cancellable, void* onReady, void* userData)) library: FridaLibrary
 ]
 
 { #category : 'generated' }

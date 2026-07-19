@@ -31,3 +31,10 @@ FridaOptionsTest >> testDefaultOptionsOverloadExists [
 	self assert: (FridaDevice canUnderstand: #enumerateProcesses).
 	self assert: (FridaDevice canUnderstand: #spawn:)
 ]
+
+{ #category : 'tests' }
+FridaOptionsTest >> testEnumSetterAcceptsSymbol [
+	| options |
+	options := FridaProcessQueryOptions configuredBy: [ :o | o scope: #full ].
+	self assert: options scope value equals: FridaScope FridaScopeFull value
+]

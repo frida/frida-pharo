@@ -25,3 +25,13 @@ FridaGadgetBreakpointAction class >> initialize [
 	self rebuildEnumAccessors
 ]
 
+{ #category : 'generated' }
+FridaGadgetBreakpointAction class >> fromSymbol: aSymbol [
+	^ self symbolValues at: aSymbol
+]
+
+{ #category : 'generated' }
+FridaGadgetBreakpointAction class >> symbolValues [
+	^ { #invokeReturn -> FridaGadgetBreakpointActionInvokeReturn. #resume -> FridaGadgetBreakpointActionResume. #detach -> FridaGadgetBreakpointActionDetach. #pagePlan -> FridaGadgetBreakpointActionPagePlan } asDictionary
+]
+

@@ -55,7 +55,7 @@ FridaProcessMatchOptions >> scopeRaw: aValue [
 
 { #category : 'generated' }
 FridaProcessMatchOptions >> scope: aValue [
-	self scopeRaw: aValue.
+	self scopeRaw: (FridaScope fromSymbol: aValue).
 	^ self
 ]
 

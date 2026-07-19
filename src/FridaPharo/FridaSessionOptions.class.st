@@ -69,7 +69,7 @@ FridaSessionOptions >> realmRaw: aValue [
 
 { #category : 'generated' }
 FridaSessionOptions >> realm: aValue [
-	self realmRaw: aValue.
+	self realmRaw: (FridaRealm fromSymbol: aValue).
 	^ self
 ]
 
@@ -102,7 +102,7 @@ FridaSessionOptions >> exceptorRaw: aValue [
 
 { #category : 'generated' }
 FridaSessionOptions >> exceptor: aValue [
-	self exceptorRaw: aValue.
+	self exceptorRaw: (FridaExceptor fromSymbol: aValue).
 	^ self
 ]
 

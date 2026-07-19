@@ -39,7 +39,7 @@ FridaFrontmostQueryOptions >> scopeRaw: aValue [
 
 { #category : 'generated' }
 FridaFrontmostQueryOptions >> scope: aValue [
-	self scopeRaw: aValue.
+	self scopeRaw: (FridaScope fromSymbol: aValue).
 	^ self
 ]
 

@@ -195,12 +195,29 @@ def _emit_enumeration(enum) -> str:
         ["self initializeEnumeration.", "self rebuildEnumAccessors"],
     )
 
+    prefix = enum.pharo_name
+    symbol_pairs = []
+    for name, _value in members:
+        suffix = name[len(prefix):]
+        symbol_pairs.append((suffix[:1].lower() + suffix[1:], name))
+    from_symbol = _method(
+        f"{enum.pharo_name} class >> fromSymbol: aSymbol",
+        GENERATED_TAG,
+        ["^ self symbolValues at: aSymbol"],
+    )
+    literal = ". ".join(f"#{symbol} -> {member}" for symbol, member in symbol_pairs)
+    symbol_values = _method(
+        f"{enum.pharo_name} class >> symbolValues",
+        GENERATED_TAG,
+        [f"^ {{ {literal} }} asDictionary"],
+    )
+
     return _class_file(
         name=enum.pharo_name,
         superclass="FFIExternalEnumeration",
         comment=f"GENERATED binding for the Frida {enum.c_type} enumeration.",
         shared_variables=[name for name, _ in members],
-        body_sections=[enum_decl, initialize],
+        body_sections=[enum_decl, initialize, from_symbol, symbol_values],
     )
 
 
@@ -497,16 +514,18 @@ def _emit_property_setter(obj, prop, model) -> Optional[str]:
         )
         return prim + "\n" + wrapper
 
-    # Scalar/string/enum: single-value setter (returns self).
+    # Scalar/string/enum: single-value setter (returns self). Enums take an
+    # idiomatic Symbol (e.g. #full), mapped to the C value.
     prim = _method(
         f"{obj.pharo_name} >> {base}Raw: aValue",
         GENERATED_TAG,
         [f"^ self ffiCall: #(void {setter_c} (self, {mapped.token} aValue)) library: FridaLibrary"],
     )
+    raw_arg = f"({mapped.pharo_class} fromSymbol: aValue)" if mapped.kind == "enum" else "aValue"
     wrapper = _method(
         f"{obj.pharo_name} >> {base}: aValue",
         GENERATED_TAG,
-        [f"self {base}Raw: aValue.", "^ self"],
+        [f"self {base}Raw: {raw_arg}.", "^ self"],
     )
     return prim + "\n" + wrapper
 
@@ -637,6 +656,11 @@ def _emit_async_method(obj, meth, model, params) -> Optional[str]:
             marshalled += 1
             prologue.append(f"{local} := {name} isNil ifTrue: [ ExternalAddress null ] ifFalse: [ {name} getHandle ].")
             begin_params.append((local, Mapped("pointer", "void*")))
+        elif m.kind == "enum":
+            local = f"marshalled{marshalled}"
+            marshalled += 1
+            prologue.append(f"{local} := {m.pharo_class} fromSymbol: {name}.")
+            begin_params.append((local, m))
         else:
             begin_params.append((name, m))
 
@@ -837,6 +861,11 @@ def _emit_returning_call(obj, base, c_identifier, params, mapped, transfer,
             prologue.append(f"{local} := FridaVardict encode: {name}.")
             epilogue.append(f"FridaGlue vardictUnref: {local}.")
             prim_params.append((local, Mapped("pointer", "void*")))
+        elif m.kind == "enum":
+            local = f"marshalled{marshalled_locals}"
+            marshalled_locals += 1
+            prologue.append(f"{local} := {m.pharo_class} fromSymbol: {name}.")
+            prim_params.append((local, m))
         else:
             prim_params.append((name, m))
 
