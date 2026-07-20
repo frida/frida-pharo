@@ -51,27 +51,6 @@ jobs:
           curl -fL "$url" | tar -xJ -C devkit
           ls -l devkit
 
-      - name: Link libfrida-core.so from the devkit
-        run: |
-          bash tools/build-lib.sh "$PWD/devkit" \
-            "$PWD/build/dylib/libfrida-core.so"
-          ls -l build/dylib
-
-      - name: Probe the glib symbol situation (diagnostics)
-        run: |
-          echo "== the devkit renames bundled glib to _frida_g_* =="
-          nm devkit/libfrida-core.a 2>/dev/null \
-            | grep -E ' T _frida_g_object_unref$' | head \
-            || echo "  -> unexpected: no _frida_g_object_unref in the archive"
-          echo "== build-lib.sh aliases those back to plain names; check the .so exports them =="
-          nm -D --defined-only build/dylib/libfrida-core.so \
-            | grep -E ' g_(object_unref|object_ref|bytes_new|variant_unref|io_stream_get_input_stream)$' \
-            || echo "  -> ALIASING FAILED: plain g_* not exported"
-          echo "== plain and prefixed names must share one address (same code) =="
-          nm -D build/dylib/libfrida-core.so | grep -wE 'g_object_unref|_frida_g_object_unref' | head
-          echo "== frida_* export (sanity) =="
-          nm -D --defined-only build/dylib/libfrida-core.so | grep -c ' frida_version_string$' || true
-
       - name: Fetch a pinned Pharo image + VM
         run: |
           mkdir -p build/pharo
@@ -82,7 +61,7 @@ jobs:
       # it loads and tests the vendored src/FridaPharo Tonel (the macOS dev build
       # keeps that in sync via `make generate`). See NOTES.
       - name: Load the bindings into a fresh image
-        run: make image
+        run: make image DEVKIT="$PWD/devkit"
 
       - name: Run the SUnit suite (fails the job on any failure/error)
         run: make test
@@ -109,7 +88,6 @@ jobs:
 #    prefixed symbol back to its plain name (-Wl,--defsym), so the FFI prims
 #    bind g_* (g_hash_table_*, g_variant_*, g_object_unref, ...) to frida's OWN
 #    bundled glib -- the single GType universe its GObjects live in. No system
-#    glib is used at build or runtime. The probe step verifies the alias took
-#    (plain and prefixed names share one address). If it ever fails, revisit the
+#    glib is used at build or runtime. If binding ever fails, revisit the
 #    _frida_ prefix assumption.
 #  * `make test` fails the job if the SUnit runner reports failures/errors.
