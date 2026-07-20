@@ -90,7 +90,7 @@ fi
 alias_args=()
 while read -r sym; do
   alias_args+=("-Wl,--defsym,${sym#_frida_}=${sym}")
-done < <(nm "$archive" 2>/dev/null | awk '$2 == "T" && $3 ~ /^_frida_g_/ { print $3 }' | sort -u)
+done < <("${NM:-nm}" "$archive" 2>/dev/null | awk '$2 == "T" && $3 ~ /^_frida_g_/ { print $3 }' | sort -u)
 
 # --- Limit dynamic exports to the uFFI import set -------------------------
 symbols=$(scan_symbols)
@@ -109,7 +109,7 @@ case "$(uname -s)" in
 esac
 
 # --- Link -----------------------------------------------------------------
-exec clang -shared -o "$OUT" \
+exec "${CC:-clang}" -shared -o "$OUT" \
   ${arch_args[@]+"${arch_args[@]}"} \
   "${whole_archive[@]}" \
   -L"$DEVKIT" \

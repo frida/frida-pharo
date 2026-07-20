@@ -29,21 +29,20 @@ jobs:
           - runner: macos-latest
             slug: macos-x86_64
             ext: dylib
+          # The x-tools containers target glibc 2.17, so the prebuilts also
+          # run on older distros.
           - runner: ubuntu-latest
+            container: ghcr.io/frida/x-tools-linux-x86_64:latest
             slug: linux-x86_64
             ext: so
-          - runner: ubuntu-24.04-arm
+          - runner: ubuntu-latest
+            container: ghcr.io/frida/x-tools-linux-arm64:latest
             slug: linux-arm64
             ext: so
     runs-on: ${{ matrix.runner }}
+    container: ${{ matrix.container }}
     steps:
       - uses: actions/checkout@v7
-
-      - name: Install build dependencies (Linux)
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential clang pkg-config curl xz-utils
 
       - name: Link libfrida-core from the devkit
         env:
@@ -51,6 +50,9 @@ jobs:
           SLUG: ${{ matrix.slug }}
           EXT: ${{ matrix.ext }}
         run: |
+          if [ -n "${XTOOLS_HOST:-}" ]; then
+            export CC="${XTOOLS_HOST}-gcc" NM="${XTOOLS_HOST}-nm"
+          fi
           asset="frida-core-devkit-${VERSION}-${SLUG}.tar.xz"
           url="https://github.com/frida/frida/releases/download/${VERSION}/${asset}"
           echo "Fetching $url"
