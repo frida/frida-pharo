@@ -29,9 +29,17 @@ FridaIcon >> asForm [
 
 { #category : 'converting' }
 FridaIcon >> decodeForm [
-	^ format = 'png'
+	"A Pharo Form is straight alpha, but frida's rgba icons and the PNGs Apple's
+	 device APIs hand back are both premultiplied, which makes anti-aliased edges
+	 look blended against black over a light background. Undo it when detected;
+	 genuinely-straight icons (e.g. Android's) are left alone."
+	| decoded |
+	decoded := format = 'png'
 		ifTrue: [ self formFromPng ]
-		ifFalse: [ self formFromRgba ]
+		ifFalse: [ self formFromRgba ].
+	^ (self isPremultiplied: decoded)
+		ifTrue: [ self straightAlpha: decoded ]
+		ifFalse: [ decoded ]
 ]
 
 { #category : 'converting' }
@@ -53,6 +61,41 @@ FridaIcon >> formFromRgba [
 { #category : 'converting' }
 FridaIcon >> formFromPng [
 	^ ImageReadWriter formFromStream: image readStream
+]
+
+{ #category : 'converting' }
+FridaIcon >> isPremultiplied: aForm [
+	"Premultiplied data never has a colour channel exceeding its alpha."
+	aForm bits do: [ :pixel |
+		| alpha |
+		alpha := (pixel bitShift: -24) bitAnd: 255.
+		(((pixel bitShift: -16) bitAnd: 255) > alpha
+			or: [ ((pixel bitShift: -8) bitAnd: 255) > alpha
+			or: [ (pixel bitAnd: 255) > alpha ] ]) ifTrue: [ ^ false ] ].
+	^ true
+]
+
+{ #category : 'converting' }
+FridaIcon >> straightAlpha: aForm [
+	| result inBits outBits |
+	result := Form extent: aForm extent depth: 32.
+	inBits := aForm bits.
+	outBits := result bits.
+	1 to: inBits size do: [ :i |
+		| pixel alpha |
+		pixel := inBits at: i.
+		alpha := (pixel bitShift: -24) bitAnd: 255.
+		outBits at: i put:
+			(alpha bitShift: 24)
+			+ ((self straighten: ((pixel bitShift: -16) bitAnd: 255) over: alpha) bitShift: 16)
+			+ ((self straighten: ((pixel bitShift: -8) bitAnd: 255) over: alpha) bitShift: 8)
+			+ (self straighten: (pixel bitAnd: 255) over: alpha) ].
+	^ result
+]
+
+{ #category : 'converting' }
+FridaIcon >> straighten: aChannel over: anAlpha [
+	^ anAlpha = 0 ifTrue: [ 0 ] ifFalse: [ (aChannel * 255 // anAlpha) min: 255 ]
 ]
 
 { #category : 'inspecting' }

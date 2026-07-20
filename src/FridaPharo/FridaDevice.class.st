@@ -128,7 +128,7 @@ FridaDevice >> enumerateApplications: options cancellable: cancellable [
 	marshalled0 := options0 isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options0 getHandle ].
 	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
 	raw := self asyncCall: [ :onReady | self enumerateApplicationsBegin: marshalled0 cancellable: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self enumerateApplicationsFinish: asyncResult errorHolder: errorHolder ].
-	^ (FridaApplicationList fromOwnedHandle: (raw)) asArray
+	^ (FridaApplicationList fromOwnedHandle: (raw)) asFridaList
 ]
 
 { #category : 'generated' }
@@ -278,7 +278,7 @@ FridaDevice >> enumerateProcesses: options cancellable: cancellable [
 	marshalled0 := options0 isNil ifTrue: [ ExternalAddress null ] ifFalse: [ options0 getHandle ].
 	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
 	raw := self asyncCall: [ :onReady | self enumerateProcessesBegin: marshalled0 cancellable: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self enumerateProcessesFinish: asyncResult errorHolder: errorHolder ].
-	^ (FridaProcessList fromOwnedHandle: (raw)) asArray
+	^ (FridaProcessList fromOwnedHandle: (raw)) asFridaList
 ]
 
 { #category : 'generated' }
@@ -359,7 +359,7 @@ FridaDevice >> enumeratePendingSpawn: cancellable [
 	| cancellableHandle raw |
 	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
 	raw := self asyncCall: [ :onReady | self enumeratePendingSpawnBegin: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self enumeratePendingSpawnFinish: asyncResult errorHolder: errorHolder ].
-	^ (FridaSpawnList fromOwnedHandle: (raw)) asArray
+	^ (FridaSpawnList fromOwnedHandle: (raw)) asFridaList
 ]
 
 { #category : 'generated' }
@@ -382,7 +382,7 @@ FridaDevice >> enumeratePendingChildren: cancellable [
 	| cancellableHandle raw |
 	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
 	raw := self asyncCall: [ :onReady | self enumeratePendingChildrenBegin: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self enumeratePendingChildrenFinish: asyncResult errorHolder: errorHolder ].
-	^ (FridaChildList fromOwnedHandle: (raw)) asArray
+	^ (FridaChildList fromOwnedHandle: (raw)) asFridaList
 ]
 
 { #category : 'generated' }
@@ -723,5 +723,30 @@ FridaDevice >> printOn: aStream [
 { #category : 'generated' }
 FridaDevice class >> identityProperties [
 	^ #(id name)
+]
+
+{ #category : 'accessing' }
+FridaDevice >> preferredIcon [
+	| variant |
+	variant := self icon.
+	(variant isNil or: [ variant isEmpty ]) ifTrue: [ ^ nil ].
+	^ FridaIcon fromDictionary: variant
+]
+
+{ #category : 'accessing' }
+FridaDevice >> hasIcon [
+	^ self preferredIcon notNil
+]
+
+{ #category : 'inspecting' }
+FridaDevice >> gtIconFor: aView [
+	<gtView>
+	| icon |
+	icon := self preferredIcon.
+	icon ifNil: [ ^ aView empty ].
+	^ aView explicit
+		title: 'Icon';
+		priority: 15;
+		stencil: [ icon asForm asElement ]
 ]
 

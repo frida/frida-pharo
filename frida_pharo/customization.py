@@ -71,8 +71,9 @@ FACADE_METHODS = (
         selector="post: json",
         body=["^ self post: json data: nil"],
     ),
-    # Icons live in the parameters' 'icons' array; wrap each as a FridaIcon that
-    # renders graphically in the inspector.
+    # Processes and applications carry an 'icons' array in their parameters; wrap
+    # each entry as a FridaIcon that renders graphically in the inspector. They also
+    # opt into the FridaList inspector's icon-first alphabetical ordering.
     *[
         method
         for target in ("FridaApplication", "FridaProcess")
@@ -87,20 +88,66 @@ FACADE_METHODS = (
             FacadeMethod(
                 target=target,
                 class_side=False,
-                selector="gtIconFor: aView",
+                selector="hasIcon",
+                category="accessing",
+                body=["^ self icons notEmpty"],
+            ),
+            FacadeMethod(
+                target=target,
+                class_side=False,
+                selector="preferredIcon",
+                category="accessing",
+                body=["^ self icons detectMax: [ :each | each width ]"],
+            ),
+            FacadeMethod(
+                target=target,
+                class_side=False,
+                selector="fridaListSortsByName",
                 category="inspecting",
-                body=[
-                    "<gtView>",
-                    "| icon |",
-                    "icon := self icons detectMax: [ :each | each width ].",
-                    "icon ifNil: [ ^ aView empty ].",
-                    "^ aView explicit",
-                    "\ttitle: 'Icon';",
-                    "\tpriority: 15;",
-                    "\tstencil: [ icon asForm asElement ]",
-                ],
+                body=["^ true"],
             ),
         )
+    ],
+    # A device carries a single icon variant; wrap it the same way. Devices keep
+    # their natural enumeration order, so they don't opt into sorting.
+    FacadeMethod(
+        target="FridaDevice",
+        class_side=False,
+        selector="preferredIcon",
+        category="accessing",
+        body=[
+            "| variant |",
+            "variant := self icon.",
+            "(variant isNil or: [ variant isEmpty ]) ifTrue: [ ^ nil ].",
+            "^ FridaIcon fromDictionary: variant",
+        ],
+    ),
+    FacadeMethod(
+        target="FridaDevice",
+        class_side=False,
+        selector="hasIcon",
+        category="accessing",
+        body=["^ self preferredIcon notNil"],
+    ),
+    # Graphical single-icon inspector view, shared by every icon-bearing type.
+    *[
+        FacadeMethod(
+            target=target,
+            class_side=False,
+            selector="gtIconFor: aView",
+            category="inspecting",
+            body=[
+                "<gtView>",
+                "| icon |",
+                "icon := self preferredIcon.",
+                "icon ifNil: [ ^ aView empty ].",
+                "^ aView explicit",
+                "\ttitle: 'Icon';",
+                "\tpriority: 15;",
+                "\tstencil: [ icon asForm asElement ]",
+            ],
+        )
+        for target in ("FridaApplication", "FridaProcess", "FridaDevice")
     ],
 )
 

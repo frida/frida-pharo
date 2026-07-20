@@ -33,3 +33,8 @@ FridaDeviceList >> asArray [
 	^ result
 ]
 
+{ #category : 'generated' }
+FridaDeviceList >> asFridaList [
+	^ FridaList withAll: self asArray
+]
+

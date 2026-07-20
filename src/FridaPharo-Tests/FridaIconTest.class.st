@@ -24,6 +24,35 @@ FridaIconTest >> testRgbaAsForm [
 ]
 
 { #category : 'tests' }
+FridaIconTest >> testRgbaUndoesPremultipliedAlpha [
+	"A half-opaque red edge pixel arrives premultiplied (127 127 0 0 128) and must
+	 decode back to full-intensity red at alpha 0.5, not the darkened 127."
+	| icon form pixel |
+	icon := FridaIcon fromDictionary: {
+		'format' -> 'rgba'.
+		'width' -> 1.
+		'height' -> 1.
+		'image' -> #[ 127 0 0 128 ] } asDictionary.
+	form := icon asForm.
+	pixel := form pixelValueAt: 0 @ 0.
+	self assert: ((pixel bitShift: -24) bitAnd: 16rFF) equals: 128.
+	self assert: (((pixel bitShift: -16) bitAnd: 16rFF) >= 253)
+]
+
+{ #category : 'tests' }
+FridaIconTest >> testKeepsStraightAlphaWhenNotPremultiplied [
+	"A bright semi-transparent pixel (colour channel above its alpha) is genuine
+	 straight alpha, e.g. an Android icon, and must be left untouched."
+	| icon pixel |
+	icon := FridaIcon fromDictionary: {
+		'format' -> 'rgba'. 'width' -> 1. 'height' -> 1.
+		'image' -> #[ 255 0 0 128 ] } asDictionary.
+	pixel := icon asForm pixelValueAt: 0 @ 0.
+	self assert: ((pixel bitShift: -24) bitAnd: 16rFF) equals: 128.
+	self assert: ((pixel bitShift: -16) bitAnd: 16rFF) equals: 255
+]
+
+{ #category : 'tests' }
 FridaIconTest >> testPngDictionaryOmitsDimensions [
 	"A png icon carries only the encoded bytes; width/height are absent."
 	| icon |

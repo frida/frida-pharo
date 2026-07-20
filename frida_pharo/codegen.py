@@ -383,16 +383,18 @@ def _emit_identity_properties(obj, model) -> Optional[str]:
 
 
 def _emit_list_protocol(obj) -> List[str]:
-    """A Frida `*List` GObject is transient: callers only ever receive the Array
-    it materialises into (see the list return-wrapping), so all it needs beyond
-    the .gir `size` / `get:` is #asArray. `get:` is 0-based (converts each
-    element per its return kind)."""
+    """A Frida `*List` GObject is transient: callers only ever receive the
+    FridaList it materialises into (see the list return-wrapping), so beyond the
+    .gir `size` / `get:` it needs #asArray and #asFridaList. `get:` is 0-based
+    (converts each element per its return kind)."""
     return [
         _method(f"{obj.pharo_name} >> asArray", GENERATED_TAG,
                 ["| result |",
                  "result := Array new: self size.",
                  "1 to: self size do: [ :i | result at: i put: (self get: i - 1) ].",
                  "^ result"]),
+        _method(f"{obj.pharo_name} >> asFridaList", GENERATED_TAG,
+                ["^ FridaList withAll: self asArray"]),
     ]
 
 
@@ -792,7 +794,7 @@ def _return_wrap_expr(mapped, transfer, value_expr: str) -> str:
                 else "fromBorrowedHandle:")
         wrapped = f"{mapped.pharo_class} {wrap} ({value_expr})"
         if mapped.is_list:
-            return f"({wrapped}) asArray"
+            return f"({wrapped}) asFridaList"
         return wrapped
     if mapped.kind == "strv":
         return f"FridaObject arrayFromStrv: ({value_expr}) owned: {owned}"

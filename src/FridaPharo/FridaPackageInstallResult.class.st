@@ -28,7 +28,7 @@ FridaPackageInstallResult class >> readPackagesRaw: aHandle [
 FridaPackageInstallResult class >> readPackages: aHandle [
 	| result |
 	result := self readPackagesRaw: aHandle.
-	^ (FridaPackageList fromBorrowedHandle: (result)) asArray
+	^ (FridaPackageList fromBorrowedHandle: (result)) asFridaList
 ]
 
 { #category : 'generated' }

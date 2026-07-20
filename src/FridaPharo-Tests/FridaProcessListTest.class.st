@@ -36,3 +36,16 @@ FridaProcessListTest >> testEnumerateProcessesCollectionProtocol [
 	"at: is 1-based and agrees with do: ordering."
 	self assert: (processes at: 1) pid equals: viaDo first pid
 ]
+
+{ #category : 'tests' }
+FridaProcessListTest >> testEnumerateProcessesSupportsIconFilter [
+	| device processes withIcons |
+	device := Frida localDevice.
+	processes := device enumerateProcesses.
+
+	self assert: (processes isKindOf: FridaList).
+	self assert: (processes allSatisfy: [ :each | each hasIcon = each icons notEmpty ]).
+
+	withIcons := processes select: [ :each | each hasIcon ].
+	self assert: (withIcons allSatisfy: [ :each | each icons notEmpty ])
+]

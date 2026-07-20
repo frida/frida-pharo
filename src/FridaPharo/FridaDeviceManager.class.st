@@ -163,7 +163,7 @@ FridaDeviceManager >> enumerateDevices: cancellable [
 	| cancellableHandle raw |
 	cancellableHandle := cancellable isNil ifTrue: [ ExternalAddress null ] ifFalse: [ cancellable getHandle ].
 	raw := self asyncCall: [ :onReady | self enumerateDevicesBegin: cancellableHandle onReady: onReady userData: ExternalAddress null ] finish: [ :asyncResult :errorHolder | self enumerateDevicesFinish: asyncResult errorHolder: errorHolder ].
-	^ (FridaDeviceList fromOwnedHandle: (raw)) asArray
+	^ (FridaDeviceList fromOwnedHandle: (raw)) asFridaList
 ]
 
 { #category : 'generated' }

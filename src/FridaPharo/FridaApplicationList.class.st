@@ -33,3 +33,8 @@ FridaApplicationList >> asArray [
 	^ result
 ]
 
+{ #category : 'generated' }
+FridaApplicationList >> asFridaList [
+	^ FridaList withAll: self asArray
+]
+

@@ -97,11 +97,26 @@ FridaProcess >> icons [
 	^ (self parameters at: 'icons' ifAbsent: [ #() ]) collect: [ :each | FridaIcon fromDictionary: each ]
 ]
 
+{ #category : 'accessing' }
+FridaProcess >> hasIcon [
+	^ self icons notEmpty
+]
+
+{ #category : 'accessing' }
+FridaProcess >> preferredIcon [
+	^ self icons detectMax: [ :each | each width ]
+]
+
+{ #category : 'inspecting' }
+FridaProcess >> fridaListSortsByName [
+	^ true
+]
+
 { #category : 'inspecting' }
 FridaProcess >> gtIconFor: aView [
 	<gtView>
 	| icon |
-	icon := self icons detectMax: [ :each | each width ].
+	icon := self preferredIcon.
 	icon ifNil: [ ^ aView empty ].
 	^ aView explicit
 		title: 'Icon';
