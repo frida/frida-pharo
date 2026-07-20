@@ -149,6 +149,23 @@ FACADE_METHODS = (
         )
         for target in ("FridaApplication", "FridaProcess", "FridaDevice")
     ],
+    # DeviceManager lookups take a timeout in milliseconds; default it to 0 (return
+    # immediately) so callers can omit it, mirroring the cancellable overloads.
+    *[
+        FacadeMethod(
+            target="FridaDeviceManager",
+            class_side=False,
+            selector=selector,
+            category="convenience",
+            body=[body],
+        )
+        for selector, body in (
+            ("getDeviceById: id", "^ self getDeviceById: id timeout: 0"),
+            ("getDeviceByType: type", "^ self getDeviceByType: type timeout: 0"),
+            ("findDeviceById: id", "^ self findDeviceById: id timeout: 0"),
+            ("findDeviceByType: type", "^ self findDeviceByType: type timeout: 0"),
+        )
+    ],
 )
 
 

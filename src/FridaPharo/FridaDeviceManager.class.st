@@ -255,3 +255,23 @@ FridaDeviceManager >> onChanged: aBlock [
 	^ self connectSignal: 'changed' callback: callback
 ]
 
+{ #category : 'convenience' }
+FridaDeviceManager >> getDeviceById: id [
+	^ self getDeviceById: id timeout: 0
+]
+
+{ #category : 'convenience' }
+FridaDeviceManager >> getDeviceByType: type [
+	^ self getDeviceByType: type timeout: 0
+]
+
+{ #category : 'convenience' }
+FridaDeviceManager >> findDeviceById: id [
+	^ self findDeviceById: id timeout: 0
+]
+
+{ #category : 'convenience' }
+FridaDeviceManager >> findDeviceByType: type [
+	^ self findDeviceByType: type timeout: 0
+]
+
